@@ -1,0 +1,7 @@
+from house.config import db
+
+class EveryRegionsErshoufangCount(db.Model):
+    __tablename__ = "every_regions_ershoufang_count"
+    id = db.Column(db.Integer, primary_key=True)
+    city = db.Column(db.String(50))
+    count = db.Column(db.INTEGER)
