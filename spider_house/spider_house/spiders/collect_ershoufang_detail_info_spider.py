@@ -4,7 +4,7 @@ import re
 import scrapy
 from lxml import etree
 
-from spider_house.items import ErShouFangItem
+from spider_house.spider_house.items import ErShouFangItem
 
 
 class CollectErShouFangDetailInfoSpider(scrapy.Spider):
@@ -39,5 +39,7 @@ class CollectErShouFangDetailInfoSpider(scrapy.Spider):
             city = response.xpath("//div[@class='crumbs fl']/a[2]/text()").extract_first()
             city = city.strip("二手房")
             url_item["city"] = city
+            print(city)
             data_list.append(url_item)
+        print(data_list)
         return data_list

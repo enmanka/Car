@@ -3,7 +3,7 @@ import re
 
 import scrapy
 
-from spider_house.items import PriceItem
+from spider_house.spider_house.items import PriceItem
 
 
 class ExampleSpider(scrapy.Spider):
@@ -35,6 +35,8 @@ class ExampleSpider(scrapy.Spider):
                 a = a + 1
             a = a + 1
             url_item["area"] = response.xpath("//p[@class='content__list--item--des']/text()").extract()[a - 1]
-            url_item["area"] = re.sub("\D", "", url_item["area"])
+            # Use a raw string to avoid escape sequence warnings
+            url_item["area"] = re.sub(r"\D", "", url_item["area"])
             data_list.append(url_item)
+        print(data_list)
         return data_list
