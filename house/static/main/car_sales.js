@@ -81,7 +81,7 @@ function renderCarSalesChart(data) {
         },
         legend: {
             orient: 'vertical',
-            right: 10,
+            right: 300,
             top: 'center',
             textStyle: {
                 color: '#fff'
