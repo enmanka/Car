@@ -6,7 +6,7 @@ from random import choice
 
 # 这个爬虫用于从链家网获取所有二手房的url
 
-from spider_house.items import UrlItem
+from spider_house.spider_house.items import UrlItem
 
 cities = ['hf', 'cq', 'fz', 'gz', 'gy', 'nn', 'lz', 'wh', 'cs', 'sjz', 'hk', 'zz', 'hrb', 'nj', 'cc', 'nc', 'sy',
           'hhht', 'yinchuan', 'sh', 'cd', 'jn', 'xa', 'ty', 'tj', 'km', 'hz']
