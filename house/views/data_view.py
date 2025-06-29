@@ -2,6 +2,10 @@
 import json
 
 from flask import Blueprint, jsonify, request
+from flask_cors import CORS
+
+import hashlib
+import secrets
 
 from house.config import db
 from house.dbmodule.bank_trend import BankTrend
@@ -15,6 +19,7 @@ from house.dbmodule.fang_wu_zheng_shou import FangWuZhengShou
 from house.dbmodule.gong_zu_fang import GongZuFang
 #from house.dbmodule.serven_area import ServenArea
 from house.dbmodule.car_sales import CarSales
+from house.dbmodule.user import User
 from house.dbmodule.yu_shou_trend import YuShouTrend
 from house.dbmodule.zufang_shoufang_price_compare import ZufangShoufangPriceCompare
 
@@ -22,24 +27,31 @@ from house.dbmodule.zufang_shoufang_price_compare import ZufangShoufangPriceComp
 本视图专门用于处理ajax数据
 """
 data = Blueprint('data', __name__)
-
-# @data.route('/getServenArea', methods=['GET'])
-# def get_serven_area():
-#     data = db.session.query(ServenArea).all()
-
-#     view_data = {}
-#     view_data["series_data"] = []
-
-#     def build_view_data(item):
-#         tmp_dic = {}
-#         tmp_dic["price"] = item.price
-#         tmp_dic["city"] = item.city
-#         view_data["series_data"].append(tmp_dic)
-
-#     [build_view_data(item) for item in data]
+CORS(data)
 
 
-#     return json.dumps(view_data, ensure_ascii=False)
+# 生成密码哈希（使用PBKDF2算法）
+def generate_password_hash(password):
+    salt = secrets.token_hex(16)  # 生成随机盐值
+    iterations = 100000  # 迭代次数增强安全性
+    hashed = hashlib.pbkdf2_hmac(
+        'sha256',
+        password.encode('utf-8'),
+        salt.encode('utf-8'),
+        iterations
+    )
+    return f"{salt}:{iterations}:{hashed.hex()}"
+
+# 验证密码
+def check_password_hash(hashed_password, input_password):
+    salt, iterations, stored_hash = hashed_password.split(':')
+    new_hash = hashlib.pbkdf2_hmac(
+        'sha256',
+        input_password.encode('utf-8'),
+        salt.encode('utf-8'),
+        int(iterations)
+    )
+    return stored_hash == new_hash.hex()
 
 @data.route('/getCarSales')
 def get_car_sales():
@@ -58,6 +70,43 @@ def get_car_sales():
         {"car_name": item.car_name, "sales": item.sales} 
         for item in query
     ])
+
+# 注册接口
+@data.route('/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    
+    # 检查用户名是否存在
+    if User.query.filter_by(usr_name=data['usr_name']).first():
+        return jsonify({"error": "用户名已存在"}), 400
+    
+    # 创建新用户
+    new_user = User(
+        usr_name=data['usr_name'],
+        pwd=generate_password_hash(data['pwd'])  # 存储salt:iterations:hash
+    )
+    db.session.add(new_user)
+    db.session.commit()
+    
+    return jsonify({"message": "注册成功"}), 201
+
+# 登录接口
+@data.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    user = User.query.filter_by(usr_name=data['usr_name']).first()
+    
+    if not user or not check_password_hash(user.pwd, data['pwd']):
+        return jsonify({"error": "用户名或密码错误"}), 401
+    
+    # 生成简单token（实际生产环境需要更安全的方案）
+    token = secrets.token_urlsafe(32)
+    
+    return jsonify({
+        "message": "登录成功",
+        "token": token,
+        "user": {"username": user.usr_name}
+    })
 
 @data.route('/getMap', methods=['GET'])
 def get_map():

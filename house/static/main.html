@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据分析平台 - 主界面</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 600px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-decoration: none;
+        }
+
+        .nav-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .footer {
+            margin-top: 30px;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>数据分析平台</h1>
+        <!--注意：这里的链接文件需要放在staic文件夹下，根据实际情况修改-->
+        <div class="btn-group">
+            <a href="../static/index1.html" class="nav-btn">汽车销量分析</a>
+            <a href="../static/1.html" class="nav-btn">汽车按月销量top排行</a>
+            <a href="../static/login.html" class="nav-btn">租房数据统计</a>
+            <a href="economic_active.html" class="nav-btn">经济活跃度分析</a>
+            <a href="property_trends.html" class="nav-btn">房产趋势分析</a>
+        </div>
+
+        <div class="footer">
+            © 2023 数据分析平台 | 版本 1.0
+        </div>
+    </div>
+</body>
+
+</html>
