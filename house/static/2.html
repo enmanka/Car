@@ -1,4 +1,82 @@
 <!DOCTYPE html>
+<<<<<<< HEAD
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>电影票房排行榜</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #121212;
+            color: #fff;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 60%;
+            overflow-y: auto;
+            border-right: 1px solid #333;
+            padding: 20px;
+        }
+
+        .main {
+            flex: 1;
+            padding: 20px;
+        }
+
+        h2 {
+            color: gold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            text-align: center;
+            padding: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        tr:hover {
+            background-color: #1e1e1e;
+            cursor: pointer;
+        }
+
+        .highlight {
+            background-color: #333;
+        }
+
+        .movie-poster {
+            width: 120px;
+            height: 160px;
+            background-color: #222;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            margin-bottom: 10px;
+        }
+
+        .bar-chart {
+            margin-top: 20px;
+        }
+
+        .bar {
+            background-color: gold;
+            height: 20px;
+            margin: 5px 0;
+=======
 <html lang="zh-CN">
 
 <head>
@@ -148,11 +226,112 @@
             width: 2px;
             height: 100%;
             right: 0;
+>>>>>>> 04f16e2a292d303ec698106b7e865bec826c72ae
         }
     </style>
 </head>
 
 <body>
+<<<<<<< HEAD
+    <div class="container">
+        <div class="sidebar">
+            <h2>电影排行榜</h2>
+            <table id="movieTable">
+                <thead>
+                    <tr>
+                        <th>排行</th>
+                        <th>电影</th>
+                        <th>票房 (万)</th>
+                    </tr>
+                </thead>
+                <tbody id="movieList"></tbody>
+            </table>
+        </div>
+        <div class="main" id="movieDetail">
+            <!-- 默认显示第一个电影的信息 -->
+        </div>
+    </div>
+
+    <script>
+        const movies = [
+            {
+                name: '哪吒之魔童降世',
+                boxOffice: 146950,
+                today: 5313.5,
+                ratio: '46.0%',
+                sessions: 136109,
+                occupancy: '0.6%',
+                trend: [14100, 7598.4, 1557.8, 1417.7, 531.35]
+            },
+            {
+                name: '误杀3',
+                boxOffice: 93320,
+                today: 50,
+                ratio: '<0.1%',
+                sessions: 268,
+                occupancy: '0.5%',
+                trend: [1120, 980, 850, 700, 50]
+            },
+            {
+                name: '破·地狱',
+                boxOffice: 211000,
+                today: 70,
+                ratio: '<0.1%',
+                sessions: 129,
+                occupancy: '1.6%',
+                trend: [1800, 1600, 1300, 900, 70]
+            }
+        ];
+
+        function renderTable() {
+            const tbody = document.getElementById('movieList');
+            tbody.innerHTML = '';
+            movies.forEach((movie, i) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+          <td>${i + 1}</td>
+          <td>${movie.name}</td>
+          <td>${(movie.today).toFixed(1)}</td>
+        `;
+                row.addEventListener('click', () => {
+                    renderDetail(movie);
+                    highlightRow(i);
+                });
+                tbody.appendChild(row);
+            });
+        }
+
+        function renderDetail(movie) {
+            const detail = document.getElementById('movieDetail');
+            detail.innerHTML = `
+        <h2>${movie.name}</h2>
+        <div class="movie-poster">电影海报</div>
+        <p>总票房：${movie.boxOffice.toLocaleString()} 万</p>
+        <p>今日票房：${movie.today} 万</p>
+        <p>票房占比：${movie.ratio}</p>
+        <p>今日排片：${movie.sessions.toLocaleString()}</p>
+        <p>今日上座率：${movie.occupancy}</p>
+        <h3>近日报表趋势</h3>
+        <div class="bar-chart">
+          ${movie.trend.map(val => `<div class="bar" style="width: ${val / 150}px">${val}</div>`).join('')}
+        </div>
+      `;
+        }
+
+        function highlightRow(index) {
+            const rows = document.querySelectorAll('#movieList tr');
+            rows.forEach((r, i) => {
+                if (i === index) r.classList.add('highlight');
+                else r.classList.remove('highlight');
+            });
+        }
+
+        // 初始渲染
+        renderTable();
+        renderDetail(movies[0]);
+        highlightRow(0);
+    </script>
+=======
 
     <!--header-->
     <div class="header">
@@ -202,6 +381,7 @@
     <script src="/static/js/echarts.min.js"></script>
     <script src="/static/main/car_sales1.js"></script>
 
+>>>>>>> 04f16e2a292d303ec698106b7e865bec826c72ae
 </body>
 
 </html>
