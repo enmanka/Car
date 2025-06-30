@@ -2,82 +2,186 @@
 <html lang="zh-CN">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>数据分析平台 - 主界面</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>数据分析平台</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.2.0/fonts/remixicon.css" rel="stylesheet" />
     <style>
         body {
-            font-family: 'Microsoft YaHei', sans-serif;
-            background-color: #f0f2f5;
             margin: 0;
-            padding: 0;
+            font-family: 'Microsoft YaHei';
             display: flex;
-            justify-content: center;
-            align-items: center;
             height: 100vh;
         }
 
-        .container {
-            text-align: center;
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            width: 80%;
-            max-width: 600px;
-        }
-
-        h1 {
-            color: #2c3e50;
-            margin-bottom: 30px;
-        }
-
-        .btn-group {
+        .sidebar {
+            width: 250px;
+            background: #1f2833;
+            color: #c5c6c7;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            transition: width 0.3s ease;
         }
 
-        .nav-btn {
-            background-color: #3498db;
-            color: white;
-            border: none;
+        .sidebar.collapsed {
+            width: 40px;
+        }
+
+        .sidebar.collapsed .nav-menu,
+        .sidebar.collapsed .sidebar-header h2 {
+            display: none;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #0b0c10;
+        }
+
+        .sidebar-header h2 {
+            margin: 0;
+            color: #66fcf1;
+            font-size: 1.5rem;
+        }
+
+        .nav-menu {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
             padding: 12px 20px;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s;
+            color: inherit;
             text-decoration: none;
+            transition: 0.3s;
         }
 
-        .nav-btn:hover {
-            background-color: #2980b9;
+        .nav-link:hover,
+        .nav-link.active {
+            background: #0b0c10;
+            color: #66fcf1;
+        }
+
+        .nav-link i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        .collapse-btn {
+            margin: 10px auto;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 50%;
+            background-color: transparent;
+            color: #66fcf1;
+            font-size: 20px;
+            border: 2px solid #66fcf1;
+            transition: all 0.3s ease;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .collapse-btn:hover {
+            background-color: #66fcf1;
+            color: #0b0c10;
+        }
+
+        .main-content {
+            flex: 1;
+            background: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            transition: margin-left 0.3s ease;
+        }
+
+        iframe {
+            flex: 1;
+            border: none;
         }
 
         .footer {
-            margin-top: 30px;
-            color: #7f8c8d;
-            font-size: 14px;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #666;
+            background: #fff;
+            border-top: 1px solid #ddd;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <h1>数据分析平台</h1>
-        <!--注意：这里的链接文件需要放在staic文件夹下，根据实际情况修改-->
-        <div class="btn-group">
-            <a href="../static/index1.html" class="nav-btn">汽车销量分析</a>
-            <a href="../static/1.html" class="nav-btn">汽车按月销量top排行</a>
-            <a href="../static/login.html" class="nav-btn">租房数据统计</a>
-            <a href="economic_active.html" class="nav-btn">经济活跃度分析</a>
-            <a href="property_trends.html" class="nav-btn">房产趋势分析</a>
-        </div>
 
-        <div class="footer">
-            © 2023 数据分析平台 | 版本 1.0
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>功能面板</h2>
         </div>
+        <ul class="nav-menu">
+            <li><a href="../static/index1.html" class="nav-link active" target="contentFrame">
+                    <i class="ri-pie-chart-2-fill"></i>汽车销量大屏</a></li>
+
+            <li><a href="../static/1.html" class="nav-link" target="contentFrame">
+                    <i class="ri-bar-chart-grouped-fill"></i>汽车按月销量Top排行</a></li>
+
+            <li><a href="../static/2.html" class="nav-link" target="contentFrame">
+                    <i class="ri-function-line"></i>各系汽车总销量</a></li>
+
+            <li><a href="economic_active.html" class="nav-link" target="contentFrame">
+                    <i class="ri-calendar-2-line"></i>各系汽车月销量</a></li>
+
+            <li><a href="property_trends.html" class="nav-link" target="contentFrame">
+                    <i class="ri-car-fill"></i>特定汽车销量走势</a></li>
+
+            <li><a href="property_trends.html" class="nav-link" target="contentFrame">
+                    <i class="ri-group-line"></i>不同类型汽车销量走势</a></li>
+
+            <li><a href="property_trends.html" class="nav-link" target="contentFrame">
+                    <i class="ri-truck-line"></i>MPV各车每月销量</a></li>
+
+            <li><a href="property_trends.html" class="nav-link" target="contentFrame">
+                    <i class="ri-medal-fill"></i>TOP品牌销量</a></li>
+        </ul>
+        <div class="collapse-btn" id="collapseBtn"><i class="ri-arrow-left-s-line"></i></div>
+    </aside>
+
+    <div class="main-content">
+        <iframe name="contentFrame" src="../static/index1.html"></iframe>
+        <div class="footer">© 2025 数据分析平台 | 版本 1.0</div>
     </div>
+
+    <script>
+        const links = document.querySelectorAll('.nav-link');
+        links.forEach(link => {
+            link.addEventListener('click', function () {
+                links.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        const sidebar = document.getElementById('sidebar');
+        const collapseBtn = document.getElementById('collapseBtn');
+
+        collapseBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            updateIcon();
+        });
+
+        function updateIcon() {
+            const icon = collapseBtn.querySelector('i');
+            icon.className = sidebar.classList.contains('collapsed')
+                ? 'ri-arrow-right-s-line'
+                : 'ri-arrow-left-s-line';
+        }
+    </script>
+
 </body>
 
 </html>
