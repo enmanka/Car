@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>各系汽车总销量</title>
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/index.css">
+
+    <style>
+        body {
+            background-color: #0f2453;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            height: 80px;
+            background-color: #1a3a8f;
+        }
+
+        .t_title {
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            font-size: 2.5em;
+            line-height: 80px;
+            color: #fff;
+        }
+
+        .data_content {
+            padding: 20px;
+        }
+
+        .left_1 {
+            background-color: #1a3a8f;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main_title {
+            font-size: 18px;
+            color: #fff;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .main_title img {
+            margin-right: 10px;
+        }
+
+        .month-selector {
+            margin: 10px 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .month-selector label {
+            color: #fff;
+            margin-right: 10px;
+        }
+
+        #month-select {
+            padding: 5px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 4px;
+            border: none;
+        }
+
+        #car_sales {
+            width: 100%;
+            height: 280px;
+        }
+
+        /* 边框样式 */
+        .t_line_box {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+        }
+
+        .t_l_line,
+        .l_t_line,
+        .t_r_line,
+        .r_t_line,
+        .l_b_line,
+        .b_l_line,
+        .r_b_line,
+        .b_r_line {
+            position: absolute;
+            background-color: #2C58A6;
+        }
+
+        /* 左上边框 */
+        .t_line_box:nth-child(1) {
+            top: 0;
+            left: 0;
+        }
+
+        /* 右上边框 */
+        .t_line_box:nth-child(2) {
+            top: 0;
+            right: 0;
+        }
+
+        /* 左下边框 */
+        .t_line_box:nth-child(3) {
+            bottom: 0;
+            left: 0;
+        }
+
+        /* 右下边框 */
+        .t_line_box:nth-child(4) {
+            bottom: 0;
+            right: 0;
+        }
+
+        .t_l_line,
+        .t_r_line {
+            width: 100%;
+            height: 2px;
+            top: 0;
+        }
+
+        .l_t_line,
+        .r_t_line {
+            width: 2px;
+            height: 100%;
+            left: 0;
+        }
+
+        .l_b_line,
+        .r_b_line {
+            width: 100%;
+            height: 2px;
+            bottom: 0;
+        }
+
+        .b_l_line,
+        .b_r_line {
+            width: 2px;
+            height: 100%;
+            right: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!--header-->
+    <div class="header">
+        <div class="bg_header">
+            <div class="header_nav t_title">
+                汽车销量分析
+            </div>
+        </div>
+    </div>
+
+    <!--main-->
+    <div class="data_content">
+        <div class="left_1 t_btn6">
+            <!--左上边框-->
+            <div class="t_line_box">
+                <i class="t_l_line"></i>
+                <i class="l_t_line"></i>
+            </div>
+            <!--右上边框-->
+            <div class="t_line_box">
+                <i class="t_r_line"></i>
+                <i class="r_t_line"></i>
+            </div>
+            <!--左下边框-->
+            <div class="t_line_box">
+                <i class="l_b_line"></i>
+                <i class="b_l_line"></i>
+            </div>
+            <!--右下边框-->
+            <div class="t_line_box">
+                <i class="r_b_line"></i>
+                <i class="b_r_line"></i>
+            </div>
+
+            <div class="main_title">
+                <img src="/static/img/t_1.png" alt="">
+                各系总销量
+            </div>
+
+
+            <div id="car_sales" class="chart"></div>
+        </div>
+    </div>
+
+    <!-- 引入JS文件 -->
+    <script src="/static/js/jquery-2.2.1.min.js"></script>
+    <script src="/static/js/echarts.min.js"></script>
+    <script src="/static/main/car_sales1.js"></script>
+
+</body>
+
+</html>
