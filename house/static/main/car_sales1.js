@@ -36,80 +36,129 @@ function fetchCarSalesData() {
 
 // 图表渲染函数
 function renderCarSalesChart(data) {
-    var chartDom = document.getElementById('car_sales');
-
-    // 初始化图表（如果尚未初始化）
-    if (!carSalesChart) {
-        carSalesChart = echarts.init(chartDom, 'infographic');
-
-        // 响应窗口变化
-        window.addEventListener("resize", function () {
-            carSalesChart.resize();
-        });
-    }
-
-    // 数据处理
-    var pieData = data.map(item => {
-        return {
-            name: item.car_name,
-            value: item.total_sales
-        };
+    const chartDom = document.getElementById('car_sales');
+    const myChart = echarts.init(chartDom, null, {
+        renderer: 'canvas',
+        useDirtyRect: false
     });
 
-    // 配置项
-    var option = {
+    // 数据处理
+    const xData = data.map(item => item.car_name);
+    const yData = data.map(item => item.total_sales);
+
+    // 定义柱状图渐变颜色
+    const barColor = new echarts.graphic.LinearGradient(
+        0, 0, 0, 1,
+        [
+            { offset: 0, color: '#66b3ff' },
+            { offset: 1, color: '#2C58A6' }
+        ]
+    );
+
+    const option = {
         title: {
-            text: '不同车系总销量占比',
+            text: '不同车系总销量',
             left: 'center',
             textStyle: {
                 color: '#fff',
-                fontSize: 16
+                fontSize: 22,
+                fontWeight: 'bold',
+                textShadow: '2px 2px 4px rgba(0, 0, 0, 0.3)'
             }
         },
         tooltip: {
-            trigger: 'item',
-            formatter: '{a} <br/>{b}: {c} ({d}%)'
-        },
-        legend: {
-            orient: 'vertical',
-            right: 300,
-            top: 'center',
+            trigger: 'axis',
+            axisPointer: {
+                type: 'shadow',
+                shadowStyle: {
+                    color: 'rgba(0, 0, 0, 0.1)'
+                }
+            },
+            formatter: '{b} : {c} 辆',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
             textStyle: {
                 color: '#fff'
+            },
+            borderColor: 'rgba(255, 255, 255, 0.2)',
+            borderWidth: 1
+        },
+        // legend: {
+        //     data: ['销量'],
+        //     textStyle: {
+        //         color: '#fff'
+        //     },
+        //     bottom: 10
+        // },
+        xAxis: {
+            type: 'category',
+            data: xData,
+            axisLabel: {
+                color: '#fff',
+                rotate: 45, // 旋转 x 轴标签
+                interval: 0
+            },
+            axisLine: {
+                lineStyle: {
+                    color: '#fff'
+                }
+            },
+            axisTick: {
+                show: false
+            }
+        },
+        yAxis: {
+            type: 'value',
+            // name: '销量',
+            nameLocation: 'middle',
+            nameGap: 40,
+            axisLabel: {
+                color: '#fff',
+                formatter: '{value}'
+            },
+            axisLine: {
+                lineStyle: {
+                    color: '#fff'
+                }
+            },
+            axisTick: {
+                show: false
+            },
+            splitLine: {
+                lineStyle: {
+                    color: 'rgba(255, 255, 255, 0.1)',
+                    type: 'dashed'
+                }
             }
         },
         series: [{
-            name: '销量占比',
-            type: 'pie',
-            radius: ['40%', '70%'],
-            avoidLabelOverlap: false,
+            name: '销量',
+            type: 'bar',
+            data: yData,
             itemStyle: {
-                borderRadius: 5,
-                borderColor: '#0f2453',
-                borderWidth: 2
+                color: barColor,
+                borderRadius: [5, 5, 0, 0] // 设置柱状图圆角
             },
-            label: {
-                show: true,
-                formatter: '{b}: {c}',
-                color: '#fff'
-            },
+            barWidth: '60%',
             emphasis: {
-                label: {
-                    show: true,
-                    fontSize: '18',
-                    fontWeight: 'bold'
+                itemStyle: {
+                    color: '#4a90e2'
                 }
             },
-            labelLine: {
-                show: true
-            },
-            data: pieData
+            animationDuration: 1000,
+            animationEasing: 'cubicOut'
         }]
     };
 
-    // 应用配置
-    carSalesChart.setOption(option);
+    if (option && typeof option === 'object') {
+        myChart.setOption(option);
+    }
+
+    // 响应窗口变化
+    window.addEventListener('resize', function () {
+        myChart.resize();
+    });
 }
 
 // 页面加载完成后初始化模块
+document.addEventListener('DOMContentLoaded', initCarSalesModule);
 document.addEventListener('DOMContentLoaded', initCarSalesModule);
