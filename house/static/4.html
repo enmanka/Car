@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>各系汽车月销量排行榜</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #121212;
+      color: #fff;
+    }
+    .container {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .main {
+      width: 70%;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .detail {
+      width: 30%;
+      border-left: 2px solid #333;
+      padding: 20px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      background-color: #121212;
+    }
+    .filters {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .category-btns button,
+    .month-selector select {
+      margin-right: 10px;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 5px;
+      background-color: #444;
+      color: #fff;
+      cursor: pointer;
+    }
+    .category-btns button.active {
+      background-color: orange;
+      color: black;
+    }
+    .table-container {
+      max-height: 75vh;
+      overflow-y: auto;
+      border: 1px solid #444;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #444;
+      padding: 10px;
+      text-align: center;
+    }
+    tr:hover {
+      background-color: #1e1e1e;
+      cursor: pointer;
+    }
+    #carDetail img {
+      max-width: 100%;
+      max-height: 200px;
+      margin-bottom: 10px;
+    }
+    .stars-outer {
+      display: inline-block;
+      position: relative;
+      font-size: 16px;
+      color: #ccc;
+    }
+    .stars-inner {
+      position: absolute;
+      top: 0;
+      left: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      color: orange;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="main">
+      <h2>各系汽车月销量排行榜</h2>
+      <div class="filters">
+        <div class="category-btns">
+          <button onclick="changeType('jiaoche', this)" class="active">轿车</button>
+          <button onclick="changeType('suv', this)">SUV</button>
+          <button onclick="changeType('mpv', this)">MPV</button>
+          <button onclick="changeType('xinnengyuan', this)">新能源</button>
+        </div>
+        <div class="month-selector">
+          <select id="monthSelect" onchange="changeMonth()">
+            <option value="01">1月</option>
+            <option value="02">2月</option>
+            <option value="03">3月</option>
+            <option value="04">4月</option>
+            <option value="05">5月</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>排名</th>
+              <th>车型</th>
+              <th>销量</th>
+              <th>口碑评分</th>
+              <th>价格区间</th>
+            </tr>
+          </thead>
+          <tbody id="carTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="detail" id="carDetail">
+      <p>点击左侧车型查看详情</p>
+    </div>
+  </div>
+
+  <script>
+    let currentType = 'jiaoche';
+    let currentMonth = '01';
+
+    function changeType(type, btn) {
+      currentType = type;
+      document.querySelectorAll('.category-btns button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      loadData();
+    }
+
+    function changeMonth() {
+      currentMonth = document.getElementById('monthSelect').value;
+      loadData();
+    }
+    function formatValue(value) {
+      return value === null || value === undefined ? '未获取' : value;
+    }
+    function loadData() {
+      fetch(`/data/getCarSalesByMonthAndType?type=${currentType}&month=${currentMonth}`)
+        .then(res => res.json())
+        .then(data => {
+          const tbody = document.getElementById('carTableBody');
+          tbody.innerHTML = '';
+          data.forEach(car => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>No.${car.ranking}</td>
+              <td>${formatValue(car.car_name)}</td>
+              <td>${formatValue(car.sales)}</td>
+              <td>${renderStars(car.rating)}</td>
+              <td>${formatValue(car.price_range)}</td>
+            `;
+            row.onclick = () => renderDetail(car);
+            tbody.appendChild(row);
+          });
+          if (data.length > 0) renderDetail(data[0]);
+        });
+    }
+
+    function renderDetail(car) {
+      document.getElementById('carDetail').innerHTML = `
+        <img src="${car.image_url}" alt="车型图片" />
+        <p><strong>车型：</strong>${car.car_name}</p>
+        <p><strong>销量：</strong>${car.sales}</p>
+        <p><strong>口碑评分：</strong>${car.rating} ${renderStars(car.rating)}</p>
+        <p><strong>价格区间：</strong>${car.price_range}</p>
+      `;
+    }
+
+    function renderStars(rating) {
+      if (rating === null || rating === undefined) return '未获取';
+      const percent = Math.round((rating / 5) * 100);
+      return `
+        <div class="stars-outer">
+          ★★★★★
+          <div class="stars-inner" style="width: ${percent}%;">★★★★★</div>
+        </div>`;
+    }
+
+    window.onload = () => {
+      currentMonth = document.getElementById('monthSelect').value;
+      loadData();
+    };
+  </script>
+</body>
+</html>

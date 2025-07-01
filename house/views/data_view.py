@@ -22,6 +22,7 @@ from house.dbmodule.car_sales import CarSales
 from house.dbmodule.user import User
 from house.dbmodule.yu_shou_trend import YuShouTrend
 from house.dbmodule.zufang_shoufang_price_compare import ZufangShoufangPriceCompare
+from house.dbmodule.car_month import CarMonth
 
 """
 本视图专门用于处理ajax数据
@@ -152,6 +153,42 @@ def get_map():
     [build_view_data(item) for item in data]
 
     return json.dumps(view_data, ensure_ascii=False)
+
+import traceback
+
+@data.route('/getCarSalesByMonthAndType', methods=['GET'])
+def get_car_sales_by_month_type():
+    car_type = request.args.get('type')
+    month = request.args.get('month')
+
+    if not car_type or not month:
+        return jsonify({"error": "缺少参数"}), 400
+
+    try:
+        CarMonth.set_table(car_type, month)  # 这里应该有打印
+        # 使用 session.execute 查询表
+        sql = CarMonth.__table__.select()
+        result = db.session.execute(sql).all()
+
+        items = []
+        for row in result:
+            items.append({
+                "id": row.id,
+                "car_type": row.car_type,
+                "ranking": row.ranking,
+                "car_name": row.car_name,
+                "sales": row.sales,
+                "rating": row.rating,
+                "price_range": row.price_range,
+                "image_url": row.image_url
+            })
+        return jsonify(items)
+
+    except Exception as e:
+        tb = traceback.format_exc()
+        print(tb)  # 服务器终端打印完整异常栈，方便查错
+        return jsonify({"error": str(e), "trace": tb}), 500
+
 
 
 @data.route('/getZufangShoufangPriceCompare', methods=['GET'])
