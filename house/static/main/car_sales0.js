@@ -68,7 +68,7 @@ function renderCarSalesChart(data) {
     // 配置项
     var option = {
         title: {
-            text: '汽车销量前五名占比',
+            text: '汽车销量TOP占比',
             left: 'center',
             textStyle: {
                 color: '#fff',
@@ -81,7 +81,7 @@ function renderCarSalesChart(data) {
         },
         legend: {
             orient: 'vertical',
-            right: 250,
+            right: 100,
             top: 'center',
             textStyle: {
                 color: '#fff'
@@ -121,4 +121,5 @@ function renderCarSalesChart(data) {
 }
 
 // 页面加载完成后初始化模块
+document.addEventListener('DOMContentLoaded', initCarSalesModule);
 document.addEventListener('DOMContentLoaded', initCarSalesModule);
