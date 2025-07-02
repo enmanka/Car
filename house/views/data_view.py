@@ -131,6 +131,34 @@ def get_all_car_sales():
     ]
     return jsonify(wordcloud_data)
 
+@data.route('/getCarSales_All')
+def getCarSales_All():
+    # 从数据库（CarSales表）获取所有数据
+    all_car_sales = CarSales.query.all()
+
+    # 用于存储按 car_name 汇总的销售数据
+    car_sales_summary = {}
+
+    # 遍历所有数据，按 car_name 对 sales 进行求和
+    for item in all_car_sales:
+        car_name = item.car_name
+        sales = item.sales
+        if car_name in car_sales_summary:
+            car_sales_summary[car_name] += sales
+        else:
+            car_sales_summary[car_name] = sales
+        print(car_name,car_sales_summary[car_name])
+
+    # 将汇总结果转换为列表格式，并按总销量降序排序
+    result = [{"car_name": car_name, "total_sales": total_sales} for car_name, total_sales in car_sales_summary.items()]
+    result.sort(key=lambda x: x["total_sales"], reverse=True)
+
+    # 仅取前十个数据
+    result = result[:15]
+
+    # 把数据打包成 JSON 并返回
+    return jsonify(result)
+
 @data.route('/getCarSalesByMonth')
 def get_car_sales_by_month():
     # 获取请求参数中的月份
