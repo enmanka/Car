@@ -4,6 +4,7 @@ from house.views.page_view import page
 
 app.register_blueprint(data, url_prefix="/data")
 app.register_blueprint(page, url_prefix="/")
+app.register_blueprint(api, url_prefix="/api")
 
 
 # 2113041705 赵嵘
