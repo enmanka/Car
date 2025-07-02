@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>汽车销售词云</title>
+    <script src="https://www.amcharts.com/lib/4/core.js"></script>
+    <script src="https://www.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/plugins/wordCloud.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
+    <style>
+        body {
+            background: #000;
+            color: #fff;
+            font-family: sans-serif;
+            padding: 20px;
+            margin: 0;
+        }
+
+        #chartdiv {
+            width: 100%;
+            height: 600px;
+            background: #111;
+        }
+
+        #info {
+            text-align: center;
+            color: #ccc;
+            margin-top: 10px;
+            height: 24px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 style="text-align: center;">汽车销售词云图</h1>
+    <div id="info">鼠标悬停查看销量</div>
+    <div id="chartdiv"></div>
+
+    <script>
+        am4core.useTheme(am4themes_animated);
+
+        var chart = am4core.create("chartdiv", am4plugins_wordCloud.WordCloud);
+        var series = chart.series.push(new am4plugins_wordCloud.WordCloudSeries());
+
+        // 填满边缘
+        series.marginTop = 0;
+        series.marginBottom = 0;
+        series.marginLeft = 0;
+        series.marginRight = 0;
+
+        // 让字体更大
+        series.maxFontSize = am4core.percent(80);
+
+        series.autoRestart = false;
+        series.labels.template.tooltipText = "{word}: {value}辆";
+        series.labels.template.propertyFields.fill = "color";
+
+        const colorList = [
+            "#FF6633", "#FFB399", "#FF33FF", "#FFFF99", "#00B3E6",
+            "#E6B333", "#3366E6", "#999966", "#99FF99", "#B34D4D",
+            "#80B300", "#809900", "#E6B3B3", "#6680B3", "#66991A",
+            "#FF99E6", "#CCFF1A", "#FF1A66", "#E6331A", "#33FFCC",
+            "#66994D", "#B366CC", "#4D8000", "#B33300", "#CC80CC",
+            "#66664D", "#991AFF", "#E666FF", "#4DB3FF", "#1AB399"
+        ];
+
+        // 鼠标悬停显示 info
+        series.labels.template.events.on("over", function (event) {
+            const ctx = event.target.dataItem.dataContext;
+            document.getElementById("info").textContent = `${ctx.word}: ${ctx.value.toLocaleString()} 辆`;
+            document.getElementById("info").style.color = event.target.fill.hex;
+        });
+        series.labels.template.events.on("out", function () {
+            document.getElementById("info").textContent = "鼠标悬停查看销量";
+            document.getElementById("info").style.color = "#ccc";
+        });
+
+        // 从数据库接口拉取数据
+        fetch("/data/getAllCarSales")
+            .then(res => res.json())
+            .then(data => {
+                // 保留前30个高频车型
+                data = data.slice(0, 30);
+
+                const wordCloudData = data.map((item, index) => ({
+                    word: item.name,
+                    value: item.value,
+                    color: am4core.color(colorList[index % colorList.length])
+                }));
+
+                series.data = wordCloudData;
+            })
+            .catch(err => {
+                console.error("获取数据失败：", err);
+                chart.dispose();
+                document.getElementById("chartdiv").innerHTML =
+                    "<div style='text-align:center; padding-top:250px; color:red;'>获取词云数据失败，请检查接口</div>";
+            });
+    </script>
+</body>
+
+</html>

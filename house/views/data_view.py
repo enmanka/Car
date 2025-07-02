@@ -3,6 +3,7 @@ import json
 
 from flask import Blueprint, jsonify, request
 from flask_cors import CORS
+from sqlalchemy import func
 
 import hashlib
 import secrets
@@ -54,45 +55,51 @@ def check_password_hash(hashed_password, input_password):
     )
     return stored_hash == new_hash.hex()
 
-@data.route('/getCarSales_All')
-def getCarSales_All():
-    # 从数据库（CarSales表）获取所有数据
-    all_car_sales = CarSales.query.all()
+import traceback
 
-    # 用于存储按 car_name 汇总的销售数据
-    car_sales_summary = {}
+@data.route('/getCarSalesByMonthAndType', methods=['GET'])
+def get_car_sales_by_month_type():
+    car_type = request.args.get('type')
+    month = request.args.get('month')
 
-    # 遍历所有数据，按 car_name 对 sales 进行求和
-    for item in all_car_sales:
-        car_name = item.car_name
-        sales = item.sales
-        if car_name in car_sales_summary:
-            car_sales_summary[car_name] += sales
-        else:
-            car_sales_summary[car_name] = sales
-        print(car_name,car_sales_summary[car_name])
+    if not car_type or not month:
+        return jsonify({"error": "缺少参数"}), 400
 
-    # 将汇总结果转换为列表格式，并按总销量降序排序
-    result = [{"car_name": car_name, "total_sales": total_sales} for car_name, total_sales in car_sales_summary.items()]
-    result.sort(key=lambda x: x["total_sales"], reverse=True)
+    try:
+        CarMonth.set_table(car_type, month)  # 这里应该有打印
+        # 使用 session.execute 查询表
+        sql = CarMonth.__table__.select()
+        result = db.session.execute(sql).all()
 
-    # 仅取前十个数据
-    result = result[:10]
+        items = []
+        for row in result:
+            items.append({
+                "id": row.id,
+                "car_type": row.car_type,
+                "ranking": row.ranking,
+                "car_name": row.car_name,
+                "sales": row.sales,
+                "rating": row.rating,
+                "price_range": row.price_range,
+                "image_url": row.image_url
+            })
+        return jsonify(items)
 
-    # 把数据打包成 JSON 并返回
-    return jsonify(result)
-
+    except Exception as e:
+        tb = traceback.format_exc()
+        print(tb)  # 服务器终端打印完整异常栈，方便查错
+        return jsonify({"error": str(e), "trace": tb}), 500
 
 @data.route('/getCarSales')
-def get_car_sales():
+def get_acar_sales():
     month = request.args.get('month')  # 拿到顾客要求的月份
     
     # 从数据库（CarSales表）筛选数据
     query = CarSales.query.filter_by(month=month)\
                          .order_by(CarSales.sales.desc())\
                          .limit(5)
-    for item in query:
-        print(item.car_name, item.sales)
+    # for item in query:
+    #     print(item.car_name, item.sales)
 
     
     # 把数据打包成JSON（外卖盒）
@@ -100,6 +107,61 @@ def get_car_sales():
         {"car_name": item.car_name, "sales": item.sales} 
         for item in query
     ])
+
+@data.route('/getAllCarSales')
+def get_all_car_sales():
+    result = (
+        db.session.query(
+            CarSales.car_name,
+            func.sum(CarSales.sales).label("total_sales")
+        )
+        .group_by(CarSales.car_name)
+        .order_by(func.sum(CarSales.sales).desc())
+        .limit(30)
+        .all()
+    )
+    
+    # 转换Decimal为int并格式化数据
+    wordcloud_data = [
+        {
+            "name": name,
+            "value": int(total_sales)  # 将Decimal转换为int
+        } 
+        for name, total_sales in result
+    ]
+    return jsonify(wordcloud_data)
+
+@data.route('/getCarSalesByMonth')
+def get_car_sales_by_month():
+    # 获取请求参数中的月份
+    month = request.args.get('month')
+    
+    if not month or not month.isdigit() or int(month) not in range(1, 13):
+        return jsonify({"error": "Invalid month parameter"}), 400
+    
+    # 查询指定月份的数据
+    result = (
+        db.session.query(
+            CarSales.car_name,
+            func.sum(CarSales.sales).label("total_sales")
+        )
+        .filter(func.extract('month', CarSales.sales) == int(month))
+        .group_by(CarSales.car_name)
+        .order_by(func.sum(CarSales.sales).desc())
+        .limit(30)
+        .all()
+    )
+    
+    # 转换Decimal为int并格式化数据
+    wordcloud_data = [
+        {
+            "name": name,
+            "value": int(total_sales)  # 将Decimal转换为int
+        } 
+        for name, total_sales in result
+    ]
+    
+    return jsonify(wordcloud_data)
 
 # 注册接口
 @data.route('/register', methods=['POST'])
@@ -153,42 +215,6 @@ def get_map():
     [build_view_data(item) for item in data]
 
     return json.dumps(view_data, ensure_ascii=False)
-
-import traceback
-
-@data.route('/getCarSalesByMonthAndType', methods=['GET'])
-def get_car_sales_by_month_type():
-    car_type = request.args.get('type')
-    month = request.args.get('month')
-
-    if not car_type or not month:
-        return jsonify({"error": "缺少参数"}), 400
-
-    try:
-        CarMonth.set_table(car_type, month)  # 这里应该有打印
-        # 使用 session.execute 查询表
-        sql = CarMonth.__table__.select()
-        result = db.session.execute(sql).all()
-
-        items = []
-        for row in result:
-            items.append({
-                "id": row.id,
-                "car_type": row.car_type,
-                "ranking": row.ranking,
-                "car_name": row.car_name,
-                "sales": row.sales,
-                "rating": row.rating,
-                "price_range": row.price_range,
-                "image_url": row.image_url
-            })
-        return jsonify(items)
-
-    except Exception as e:
-        tb = traceback.format_exc()
-        print(tb)  # 服务器终端打印完整异常栈，方便查错
-        return jsonify({"error": str(e), "trace": tb}), 500
-
 
 
 @data.route('/getZufangShoufangPriceCompare', methods=['GET'])

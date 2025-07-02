@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>3D 汽车词云图</title>
+    <style>
+        body {
+            background-color: #111;
+            color: #fff;
+            text-align: center;
+            font-family: "Microsoft YaHei", sans-serif;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        #canvasContainer {
+            width: 800px;
+            height: 600px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        canvas {
+            background-color: transparent;
+            display: block;
+        }
+
+        #tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px 15px;
+            border-radius: 5px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 14px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+            z-index: 100;
+        }
+
+        #tooltip.show {
+            opacity: 1;
+        }
+
+        ul#carTags {
+            display: none;
+        }
+
+        .tag-link {
+            text-decoration: none;
+            transition: all 0.3s;
+            display: inline-block;
+            position: relative;
+        }
+
+        .tag-link:hover {
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        .tag-link.active {
+            text-shadow: 0 0 10px currentColor;
+            z-index: 10;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>3D 汽车词云图</h1>
+
+    <div id="canvasContainer">
+        <canvas width="800" height="600" id="carCanvas">
+            你的浏览器不支持HTML5 Canvas
+        </canvas>
+        <div id="tooltip"></div>
+    </div>
+
+    <ul id="carTags"></ul>
+
+    <script src="https://www.goat1000.com/tagcanvas.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const tooltip = document.getElementById("tooltip");
+            let isPaused = false;
+            let activeTag = null;
+            let clickedTag = null;
+
+            fetch("/data/getAllCarSales")
+                .then((res) => res.json())
+                .then((data) => {
+                    const ul = document.getElementById("carTags");
+                    const maxSales = Math.max(...data.map((item) => item.value));
+
+                    data.forEach((item) => {
+                        const li = document.createElement("li");
+                        const a = document.createElement("a");
+                        a.className = "tag-link";
+                        a.href = "#";
+                        a.textContent = item.name;
+                        a.dataset.name = item.name;
+                        a.dataset.sales = item.value.toLocaleString();
+
+                        const fontSize = 10 + (item.value / maxSales) * 26;
+                        a.style.fontSize = `${fontSize}px`;
+                        const hue = Math.random() * 360;
+                        a.style.color = `hsl(${hue}, 80%, 60%)`;
+
+                        // 悬停事件
+                        a.addEventListener("mouseenter", function (e) {
+                            if (!isPaused && !clickedTag) {
+                                TagCanvas.Pause("carCanvas");
+                                isPaused = true;
+                            }
+                            activeTag = this;
+                            tooltip.innerHTML = `
+                <div>${this.dataset.name}</div>
+                <div style="color:#ffcc00;margin-top:5px;">销量: ${this.dataset.sales}辆</div>`;
+                            tooltip.classList.add("show");
+                            updateTooltipPosition(e);
+                        });
+
+                        a.addEventListener("mousemove", updateTooltipPosition);
+
+                        a.addEventListener("mouseleave", function () {
+                            if (isPaused && !clickedTag) {
+                                TagCanvas.Resume("carCanvas");
+                                isPaused = false;
+                            }
+                            if (activeTag !== clickedTag) {
+                                activeTag = null;
+                                tooltip.classList.remove("show");
+                            }
+                        });
+
+                        // 点击事件
+                        a.addEventListener("click", function (e) {
+                            e.preventDefault();
+
+                            if (clickedTag === this) {
+                                this.classList.remove("active");
+                                this.textContent = this.dataset.name;
+                                clickedTag = null;
+                                TagCanvas.Resume("carCanvas");
+                                isPaused = false;
+                                tooltip.classList.remove("show");
+                                return;
+                            }
+
+                            if (clickedTag) {
+                                clickedTag.classList.remove("active");
+                                clickedTag.textContent = clickedTag.dataset.name;
+                            }
+
+                            this.classList.add("active");
+                            this.textContent = `${this.dataset.name}：${this.dataset.sales}辆`;
+                            clickedTag = this;
+                            TagCanvas.Pause("carCanvas");
+                            isPaused = true;
+
+                            tooltip.innerHTML = `
+                <div>${this.dataset.name}</div>
+                <div style="color:#ffcc00;margin-top:5px;">销量: ${this.dataset.sales}辆</div>`;
+                            tooltip.classList.add("show");
+                            updateTooltipPosition(e);
+                        });
+
+                        li.appendChild(a);
+                        ul.appendChild(li);
+                    });
+
+                    // 初始化词云
+                    try {
+                        TagCanvas.Start("carCanvas", "carTags", {
+                            textColour: null,
+                            outlineColour: "transparent",
+                            reverse: true,
+                            depth: 0.8,
+                            maxSpeed: 0.02,
+                            minSpeed: 0.008,
+                            initial: [0.03, -0.03],
+                            decel: 0.98,
+                            weight: true,
+                            weightMode: "size",
+                            weightSize: 1.5,
+                            wheelZoom: false,
+                            noSelect: true,
+                            freezeActive: true,
+                            freezeDecel: true,
+                            tooltip: null,
+                            fadeIn: 1500,
+                            shuffleTags: true,
+                        });
+                    } catch (e) {
+                        console.error("TagCanvas加载失败：", e);
+                        document.getElementById("canvasContainer").innerHTML =
+                            "<p>词云加载失败，请检查浏览器兼容性。</p>";
+                    }
+                })
+                .catch((error) => {
+                    console.error("数据加载失败:", error);
+                    document.getElementById("canvasContainer").innerHTML =
+                        "<p>数据加载失败，请刷新重试</p>";
+                });
+
+            function updateTooltipPosition(e) {
+                const target = activeTag || clickedTag;
+                if (!target) return;
+
+                const x = e.clientX + 15;
+                const y = e.clientY + 15;
+                const maxX = window.innerWidth - tooltip.offsetWidth - 10;
+                const maxY = window.innerHeight - tooltip.offsetHeight - 10;
+
+                tooltip.style.left = `${Math.min(x, maxX)}px`;
+                tooltip.style.top = `${Math.min(y, maxY)}px`;
+            }
+
+            window.addEventListener("resize", function () {
+                if ((activeTag || clickedTag) && tooltip.classList.contains("show")) {
+                    const rect = (activeTag || clickedTag).getBoundingClientRect();
+                    tooltip.style.left = `${rect.right + 5}px`;
+                    tooltip.style.top = `${rect.top}px`;
+                }
+            });
+
+            document.addEventListener("click", function (e) {
+                if (clickedTag && !clickedTag.contains(e.target)) {
+                    clickedTag.classList.remove("active");
+                    clickedTag.textContent = clickedTag.dataset.name;
+                    clickedTag = null;
+                    TagCanvas.Resume("carCanvas");
+                    isPaused = false;
+                    tooltip.classList.remove("show");
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

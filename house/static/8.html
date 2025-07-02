@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>TOP品牌销量</title>
+    <style>
+        html,
+        body,
+        #main {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            background-color: #000;
+            /* 黑色背景 */
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .search-container {
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-container label {
+            color: #fff;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        .search-container select {
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid #0072ff;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .search-container select:hover {
+            border-color: #00c6ff;
+            box-shadow: 0 0 10px rgba(0, 198, 255, 0.5);
+        }
+
+        .search-container select:focus {
+            border-color: #00c6ff;
+            box-shadow: 0 0 15px rgba(0, 198, 255, 0.8);
+        }
+
+        .chart-container {
+            flex: 1;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 style="
+                text-align: center;
+                font-size: 36px;
+                font-weight: bold;
+                font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
+                background: linear-gradient(to right, #00c6ff, #0072ff);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                margin: 0 0 10px 0;
+            ">
+                TOP品牌销量
+            </h1>
+
+            <div class="search-container">
+                <label for="month-select">选择月份：</label>
+                <select id="month-select">
+                    <option value="all">全部月份</option>
+                    <option value="01">1月</option>
+                    <option value="02">2月</option>
+                    <option value="03">3月</option>
+                    <option value="04">4月</option>
+                    <option value="05">5月</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <div style="display: flex; height: 100%;">
+                <div id="main" style="flex: 1;"></div> <!-- 词云图 -->
+                <div id="bar-chart" style="flex: 1;"></div> <!-- 柱状图 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入 ECharts 主库和词云插件 -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud@2/dist/echarts-wordcloud.min.js"></script>
+
+    <script src="/static/main/8.js"></script>
+</body>
+
+</html>

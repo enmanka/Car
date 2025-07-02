@@ -1,183 +1,257 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>电影票房排行榜</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>汽车按月销量TOP排行</title>
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/index.css">
+
     <style>
         body {
+            background-color: #0f2453;
             margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #121212;
-            color: #fff;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        .container {
-            display: flex;
-            height: 100vh;
+        .header {
+            height: 100px;
+            background: linear-gradient(to right, #1a3a8f, #2C58A6);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        .sidebar {
-            width: 60%;
-            overflow-y: auto;
-            border-right: 1px solid #333;
-            padding: 20px;
-        }
-
-        .main {
-            flex: 1;
-            padding: 20px;
-        }
-
-        h2 {
-            color: gold;
-        }
-
-        table {
+        .t_title {
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        th,
-        td {
+            height: 100%;
             text-align: center;
-            padding: 10px;
-            border-bottom: 1px solid #333;
+            font-size: 3em;
+            line-height: 100px;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
 
-        tr:hover {
-            background-color: #1e1e1e;
-            cursor: pointer;
+        .data_content {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        .highlight {
-            background-color: #333;
+        .left_1 {
+            background-color: #1a3a8f;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+            width: 90%;
+            max-width: 1200px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
         }
 
-        .movie-poster {
-            width: 120px;
-            height: 160px;
-            background-color: #222;
+        .left_1:hover {
+            transform: translateY(-5px);
+        }
+
+        .main_title {
+            font-size: 24px;
+            color: #fff;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .main_title img {
+            margin-right: 15px;
+            width: 32px;
+            height: 32px;
+        }
+
+        .month-selector {
+            margin: 20px 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #999;
-            margin-bottom: 10px;
         }
 
-        .bar-chart {
-            margin-top: 20px;
+        .month-selector label {
+            color: #fff;
+            margin-right: 15px;
+            font-size: 18px;
         }
 
-        .bar {
-            background-color: gold;
-            height: 20px;
-            margin: 5px 0;
+        #month-select {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+            outline: none;
+            transition: box-shadow 0.3s ease;
+        }
+
+        #month-select:hover {
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        #car_sales {
+            width: 100%;
+            height: 400px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* 边框样式 */
+        .t_line_box {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+        }
+
+        .t_l_line,
+        .l_t_line,
+        .t_r_line,
+        .r_t_line,
+        .l_b_line,
+        .b_l_line,
+        .r_b_line,
+        .b_r_line {
+            position: absolute;
+            background-color: #4a75c2;
+            transition: background-color 0.3s ease;
+        }
+
+        .left_1:hover .t_l_line,
+        .left_1:hover .l_t_line,
+        .left_1:hover .t_r_line,
+        .left_1:hover .r_t_line,
+        .left_1:hover .l_b_line,
+        .left_1:hover .b_l_line,
+        .left_1:hover .r_b_line,
+        .left_1:hover .b_r_line {
+            background-color: #6699ff;
+        }
+
+        /* 左上边框 */
+        .t_line_box:nth-child(1) {
+            top: 0;
+            left: 0;
+        }
+
+        /* 右上边框 */
+        .t_line_box:nth-child(2) {
+            top: 0;
+            right: 0;
+        }
+
+        /* 左下边框 */
+        .t_line_box:nth-child(3) {
+            bottom: 0;
+            left: 0;
+        }
+
+        /* 右下边框 */
+        .t_line_box:nth-child(4) {
+            bottom: 0;
+            right: 0;
+        }
+
+        .t_l_line,
+        .t_r_line {
+            width: 100%;
+            height: 3px;
+            top: 0;
+        }
+
+        .l_t_line,
+        .r_t_line {
+            width: 3px;
+            height: 100%;
+            left: 0;
+        }
+
+        .l_b_line,
+        .r_b_line {
+            width: 100%;
+            height: 3px;
+            bottom: 0;
+        }
+
+        .b_l_line,
+        .b_r_line {
+            width: 3px;
+            height: 100%;
+            right: 0;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <div class="sidebar">
-            <h2>电影排行榜</h2>
-            <table id="movieTable">
-                <thead>
-                    <tr>
-                        <th>排行</th>
-                        <th>电影</th>
-                        <th>票房 (万)</th>
-                    </tr>
-                </thead>
-                <tbody id="movieList"></tbody>
-            </table>
-        </div>
-        <div class="main" id="movieDetail">
-            <!-- 默认显示第一个电影的信息 -->
+
+    <!--header-->
+    <div class="header">
+        <div class="bg_header">
+            <div class="header_nav t_title">
+                汽车销量分析
+            </div>
         </div>
     </div>
 
-    <script>
-        const movies = [
-            {
-                name: '哪吒之魔童降世',
-                boxOffice: 146950,
-                today: 5313.5,
-                ratio: '46.0%',
-                sessions: 136109,
-                occupancy: '0.6%',
-                trend: [14100, 7598.4, 1557.8, 1417.7, 531.35]
-            },
-            {
-                name: '误杀3',
-                boxOffice: 93320,
-                today: 50,
-                ratio: '<0.1%',
-                sessions: 268,
-                occupancy: '0.5%',
-                trend: [1120, 980, 850, 700, 50]
-            },
-            {
-                name: '破·地狱',
-                boxOffice: 211000,
-                today: 70,
-                ratio: '<0.1%',
-                sessions: 129,
-                occupancy: '1.6%',
-                trend: [1800, 1600, 1300, 900, 70]
-            }
-        ];
+    <!--main-->
+    <div class="data_content">
+        <div class="left_1 t_btn6">
+            <!--左上边框-->
+            <div class="t_line_box">
+                <i class="t_l_line"></i>
+                <i class="l_t_line"></i>
+            </div>
+            <!--右上边框-->
+            <div class="t_line_box">
+                <i class="t_r_line"></i>
+                <i class="r_t_line"></i>
+            </div>
+            <!--左下边框-->
+            <div class="t_line_box">
+                <i class="l_b_line"></i>
+                <i class="b_l_line"></i>
+            </div>
+            <!--右下边框-->
+            <div class="t_line_box">
+                <i class="r_b_line"></i>
+                <i class="b_r_line"></i>
+            </div>
 
-        function renderTable() {
-            const tbody = document.getElementById('movieList');
-            tbody.innerHTML = '';
-            movies.forEach((movie, i) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-          <td>${i + 1}</td>
-          <td>${movie.name}</td>
-          <td>${(movie.today).toFixed(1)}</td>
-        `;
-                row.addEventListener('click', () => {
-                    renderDetail(movie);
-                    highlightRow(i);
-                });
-                tbody.appendChild(row);
-            });
-        }
+            <div class="main_title">
+                <img src="/static/img/t_1.png" alt="">
+                各月份销量排名
+            </div>
 
-        function renderDetail(movie) {
-            const detail = document.getElementById('movieDetail');
-            detail.innerHTML = `
-        <h2>${movie.name}</h2>
-        <div class="movie-poster">电影海报</div>
-        <p>总票房：${movie.boxOffice.toLocaleString()} 万</p>
-        <p>今日票房：${movie.today} 万</p>
-        <p>票房占比：${movie.ratio}</p>
-        <p>今日排片：${movie.sessions.toLocaleString()}</p>
-        <p>今日上座率：${movie.occupancy}</p>
-        <h3>近日报表趋势</h3>
-        <div class="bar-chart">
-          ${movie.trend.map(val => `<div class="bar" style="width: ${val / 150}px">${val}</div>`).join('')}
+            <!-- 月份选择器 -->
+            <div class="month-selector">
+                <label>选择月份：</label>
+                <select id="month-select">
+                    <option value="01">1月</option>
+                    <option value="02">2月</option>
+                    <option value="03">3月</option>
+                    <option value="04">4月</option>
+                    <option value="05">5月</option>
+                </select>
+            </div>
+
+            <div id="car_sales" class="chart"></div>
         </div>
-      `;
-        }
+    </div>
 
-        function highlightRow(index) {
-            const rows = document.querySelectorAll('#movieList tr');
-            rows.forEach((r, i) => {
-                if (i === index) r.classList.add('highlight');
-                else r.classList.remove('highlight');
-            });
-        }
+    <!-- 引入JS文件 -->
+    <script src="/static/js/jquery-2.2.1.min.js"></script>
+    <script src="/static/js/echarts.min.js"></script>
+    <script src="/static/main/car_sales0.js"></script>
 
-        // 初始渲染
-        renderTable();
-        renderDetail(movies[0]);
-        highlightRow(0);
-    </script>
 </body>
 
 </html>

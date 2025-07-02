@@ -4,189 +4,126 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>汽车按月销量TOP排行</title>
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <title>大数据分析平台</title>
     <link href="/static/css/bootstrap.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/base.css">
     <link rel="stylesheet" href="/static/css/index.css">
 
     <style>
+        /* 全局设置 */
+        html,
         body {
-            background-color: #0f2453;
+            width: 100%;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+            /* 禁止横向滚动 */
+            overflow-y: auto;
+            /* 允许纵向滚动 */
+            min-width: 1200px;
+            /* 设置最小宽度 */
         }
 
-        .header {
-            height: 100px;
-            background: linear-gradient(to right, #1a3a8f, #2C58A6);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .t_title {
-            width: 100%;
-            height: 100%;
-            text-align: center;
-            font-size: 3em;
-            line-height: 100px;
-            color: #fff;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        }
-
+        /* 主容器 */
         .data_content {
-            padding: 30px;
+            width: 100%;
+            padding: 0 15px;
+            box-sizing: border-box;
+        }
+
+        /* 主区域 - Flex布局 */
+        .data_main {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        /* 左右侧边栏 */
+        .main_left,
+        .main_right {
+            flex: 0 0 23%;
+            /* 固定23%宽度 */
+            min-width: 0;
+            /* 防止内容溢出 */
             display: flex;
             flex-direction: column;
-            align-items: center;
+            gap: 15px;
         }
 
-        .left_1 {
-            background-color: #1a3a8f;
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 30px;
-            position: relative;
-            overflow: hidden;
-            width: 90%;
-            max-width: 1200px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-            transition: transform 0.3s ease;
+        /* 中间主内容区 */
+        .main_center {
+            flex: 1;
+            /* 剩余空间 */
+            min-width: 0;
         }
 
-        .left_1:hover {
-            transform: translateY(-5px);
+        /* 底部区域 */
+        .data_bottom {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 15px;
+            margin-top: 20px;
         }
 
+        /* 底部左右侧边栏 */
+        .bottom_1,
+        .bottom_4 {
+            flex: 0 0 23%;
+            min-width: 0;
+        }
+
+        /* 底部中间区域 */
+        .bottom_center {
+            flex: 1;
+            display: flex;
+            gap: 15px;
+        }
+
+        /* 底部中间的两个子区域 */
+        .bottom_2,
+        .bottom_3 {
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* 图表容器 */
+        .chart,
+        .echart {
+            width: 100% !important;
+            height: auto;
+            min-height: 200px;
+        }
+
+        /* 特殊高度的图表 */
+        #chart_map {
+            height: 610px !important;
+        }
+
+        /* 清除浮动影响 */
+        .fl,
+        .fr {
+            float: none;
+        }
+
+        /* 标题样式 */
         .main_title {
-            font-size: 24px;
-            color: #fff;
-            margin-bottom: 20px;
             display: flex;
             align-items: center;
+            padding: 10px 0;
         }
 
-        .main_title img {
-            margin-right: 15px;
-            width: 32px;
-            height: 32px;
-        }
+        /* 响应式调整 */
+        @media (max-width: 1400px) {
 
-        .month-selector {
-            margin: 20px 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .month-selector label {
-            color: #fff;
-            margin-right: 15px;
-            font-size: 18px;
-        }
-
-        #month-select {
-            padding: 10px 20px;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 8px;
-            border: none;
-            font-size: 16px;
-            outline: none;
-            transition: box-shadow 0.3s ease;
-        }
-
-        #month-select:hover {
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-        }
-
-        #car_sales {
-            width: 100%;
-            height: 400px;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        /* 边框样式 */
-        .t_line_box {
-            position: absolute;
-            width: 30px;
-            height: 30px;
-        }
-
-        .t_l_line,
-        .l_t_line,
-        .t_r_line,
-        .r_t_line,
-        .l_b_line,
-        .b_l_line,
-        .r_b_line,
-        .b_r_line {
-            position: absolute;
-            background-color: #4a75c2;
-            transition: background-color 0.3s ease;
-        }
-
-        .left_1:hover .t_l_line,
-        .left_1:hover .l_t_line,
-        .left_1:hover .t_r_line,
-        .left_1:hover .r_t_line,
-        .left_1:hover .l_b_line,
-        .left_1:hover .b_l_line,
-        .left_1:hover .r_b_line,
-        .left_1:hover .b_r_line {
-            background-color: #6699ff;
-        }
-
-        /* 左上边框 */
-        .t_line_box:nth-child(1) {
-            top: 0;
-            left: 0;
-        }
-
-        /* 右上边框 */
-        .t_line_box:nth-child(2) {
-            top: 0;
-            right: 0;
-        }
-
-        /* 左下边框 */
-        .t_line_box:nth-child(3) {
-            bottom: 0;
-            left: 0;
-        }
-
-        /* 右下边框 */
-        .t_line_box:nth-child(4) {
-            bottom: 0;
-            right: 0;
-        }
-
-        .t_l_line,
-        .t_r_line {
-            width: 100%;
-            height: 3px;
-            top: 0;
-        }
-
-        .l_t_line,
-        .r_t_line {
-            width: 3px;
-            height: 100%;
-            left: 0;
-        }
-
-        .l_b_line,
-        .r_b_line {
-            width: 100%;
-            height: 3px;
-            bottom: 0;
-        }
-
-        .b_l_line,
-        .b_r_line {
-            width: 3px;
-            height: 100%;
-            right: 0;
+            .main_left,
+            .main_right,
+            .bottom_1,
+            .bottom_4 {
+                flex: 0 0 25%;
+            }
         }
     </style>
 </head>
@@ -197,61 +134,400 @@
     <div class="header">
         <div class="bg_header">
             <div class="header_nav t_title">
-                汽车销量分析
+                城建住房大数据分析
             </div>
         </div>
     </div>
 
     <!--main-->
     <div class="data_content">
-        <div class="left_1 t_btn6">
-            <!--左上边框-->
-            <div class="t_line_box">
-                <i class="t_l_line"></i>
-                <i class="l_t_line"></i>
-            </div>
-            <!--右上边框-->
-            <div class="t_line_box">
-                <i class="t_r_line"></i>
-                <i class="r_t_line"></i>
-            </div>
-            <!--左下边框-->
-            <div class="t_line_box">
-                <i class="l_b_line"></i>
-                <i class="b_l_line"></i>
-            </div>
-            <!--右下边框-->
-            <div class="t_line_box">
-                <i class="r_b_line"></i>
-                <i class="b_r_line"></i>
-            </div>
+        <div class="data_main">
+            <div class="main_left">
+                <div class="left_1 t_btn6" style="cursor: pointer;">
+                    <!--左上边框-->
+                    <div class="t_line_box">
+                        <i class="t_l_line"></i>
+                        <i class="l_t_line"></i>
+                    </div>
+                    <!--右上边框-->
+                    <div class="t_line_box">
+                        <i class="t_r_line"></i>
+                        <i class="r_t_line"></i>
+                    </div>
+                    <!--左下边框-->
+                    <div class="t_line_box">
+                        <i class="l_b_line"></i>
+                        <i class="b_l_line"></i>
+                    </div>
+                    <!--右下边框-->
+                    <div class="t_line_box">
+                        <i class="r_b_line"></i>
+                        <i class="b_r_line"></i>
+                    </div>
 
-            <div class="main_title">
-                <img src="/static/img/t_1.png" alt="">
-                各月份销量排名
+                    <div class="main_title">
+                        <img src="/static/img/t_1.png" alt="">
+                        各月份销量排名
+                    </div>
+                    <!-- 月份选择器 -->
+                    <div class="month-selector" style="margin: 10px 15px; display: flex; align-items: center;">
+                        <label style="color: #fff; margin-right: 10px;">选择月份：</label>
+                        <select id="month-select"
+                            style="padding: 5px; background: rgba(255,255,255,0.8); border-radius: 4px;">
+                            <option value="01">1月</option>
+                            <option value="02">2月</option>
+                            <option value="03">3月</option>
+                        </select>
+                    </div>
+                    <div id="car_sales" class="chart" style="width:100%;height: 280px;"></div>
+                </div>
+                <div class="left_2" style="cursor: pointer;">
+                    <!--边框元素-->
+                    <div class="t_line_box">
+                        <i class="t_l_line"></i>
+                        <i class="l_t_line"></i>
+                    </div>
+                    <div class="t_line_box">
+                        <i class="t_r_line"></i>
+                        <i class="r_t_line"></i>
+                    </div>
+                    <div class="t_line_box">
+                        <i class="l_b_line"></i>
+                        <i class="b_l_line"></i>
+                    </div>
+                    <div class="t_line_box">
+                        <i class="r_b_line"></i>
+                        <i class="b_r_line"></i>
+                    </div>
+                    <div class="main_title">
+                        <img src="/static/img/t_2.png" alt="">
+                        租房数量
+                    </div>
+                    <div id="chart_2" class="chart t_btn9" style="width:100%;height: 280px;"></div>
+                </div>
             </div>
-
-            <!-- 月份选择器 -->
-            <div class="month-selector">
-                <label>选择月份：</label>
-                <select id="month-select">
-                    <option value="01">1月</option>
-                    <option value="02">2月</option>
-                    <option value="03">3月</option>
-                    <option value="04">4月</option>
-                    <option value="05">5月</option>
-                </select>
+            <div class="main_center">
+                <div class="center_text">
+                    <!--边框元素-->
+                    <div class="t_line_box">
+                        <i class="t_l_line"></i>
+                        <i class="l_t_line"></i>
+                    </div>
+                    <div class="t_line_box">
+                        <i class="t_r_line"></i>
+                        <i class="r_t_line"></i>
+                    </div>
+                    <div class="t_line_box">
+                        <i class="l_b_line"></i>
+                        <i class="b_l_line"></i>
+                    </div>
+                    <div class="t_line_box">
+                        <i class="r_b_line"></i>
+                        <i class="b_r_line"></i>
+                    </div>
+                    <div class="main_title">
+                        <img src="/static/img/t_3.png" alt="">
+                        中国地图
+                    </div>
+                    <div id="chart_map" style="width:100%;height:610px;"></div>
+                </div>
             </div>
+            <div class="main_right">
+                <div class="right_1">
+                    <!--边框元素-->
+                    <div class="t_line_box">
+                        <i class="t_l_line"></i>
+                        <i class="l_t_line"></i>
+                    </div>
+                    <div class="t_line_box">
+                        <i class="t_r_line"></i>
+                        <i class="r_t_line"></i>
+                    </div>
+                    <div class="t_line_box">
+                        <i class="l_b_line"></i>
+                        <i class="b_l_line"></i>
+                    </div>
+                    <div class="t_line_box">
+                        <i class="r_b_line"></i>
+                        <i class="b_r_line"></i>
+                    </div>
+                    <div class="main_title">
+                        <img src="/static/img/t_4.png" alt="">
+                        租/售房价对比
+                    </div>
+                    <div id="chart_3" class="echart t_btn7" style="width:100%;height: 280px;"></div>
+                </div>
+                <div class="right_2">
+                    <!--边框元素-->
+                    <div class="t_line_box">
+                        <i class="t_l_line"></i>
+                        <i class="l_t_line"></i>
+                    </div>
+                    <div class="t_line_box">
+                        <i class="t_r_line"></i>
+                        <i class="r_t_line"></i>
+                    </div>
+                    <div class="t_line_box">
+                        <i class="l_b_line"></i>
+                        <i class="b_l_line"></i>
+                    </div>
+                    <div class="t_line_box">
+                        <i class="r_b_line"></i>
+                        <i class="b_r_line"></i>
+                    </div>
+                    <div class="main_title">
+                        <img src="/static/img/t_5.png" alt="">
+                        售房数量
+                    </div>
+                    <div id="chart_4" class="echart t_btn4" style="width:100%;height: 280px;cursor: pointer;"></div>
+                </div>
+            </div>
+        </div>
 
-            <div id="car_sales" class="chart"></div>
+        <!-- 第一行底部内容 -->
+        <div class="data_bottom">
+            <div class="bottom_1 t_btn5" style="cursor: pointer;">
+                <!--边框元素-->
+                <div class="t_line_box">
+                    <i class="t_l_line"></i>
+                    <i class="l_t_line"></i>
+                </div>
+                <div class="t_line_box">
+                    <i class="t_r_line"></i>
+                    <i class="r_t_line"></i>
+                </div>
+                <div class="t_line_box">
+                    <i class="l_b_line"></i>
+                    <i class="b_l_line"></i>
+                </div>
+                <div class="t_line_box">
+                    <i class="r_b_line"></i>
+                    <i class="b_r_line"></i>
+                </div>
+                <div class="main_title">
+                    <img src="/static/img/t_6.png" alt="">
+                    经济活跃城市
+                </div>
+                <div id="chart_5" class="echart" style="width:100%;height: 250px;margin-top: 15px;padding-left: 15%;">
+                    <canvas height="244" id="cloudCanvas"></canvas>
+                </div>
+                <div id="tags2">
+                    <ul id="regBusiness">
+                        <li></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="bottom_center">
+                <div class="bottom_2">
+                    <!--边框元素-->
+                    <div class="t_line_box">
+                        <i class="t_l_line"></i>
+                        <i class="l_t_line"></i>
+                    </div>
+                    <div class="t_line_box">
+                        <i class="t_r_line"></i>
+                        <i class="r_t_line"></i>
+                    </div>
+                    <div class="t_line_box">
+                        <i class="l_b_line"></i>
+                        <i class="b_l_line"></i>
+                    </div>
+                    <div class="t_line_box">
+                        <i class="r_b_line"></i>
+                        <i class="b_r_line"></i>
+                    </div>
+                    <div class="main_title">
+                        <img src="/static/img/t_7.png" alt="">
+                        在征收项目数
+                    </div>
+                    <div id="chart_10" class="main_table t_btn8" style="width:100%;height: 250px"></div>
+                </div>
+                <div class="bottom_3">
+                    <!--边框元素-->
+                    <div class="t_line_box">
+                        <i class="t_l_line"></i>
+                        <i class="l_t_line"></i>
+                    </div>
+                    <div class="t_line_box">
+                        <i class="t_r_line"></i>
+                        <i class="r_t_line"></i>
+                    </div>
+                    <div class="t_line_box">
+                        <i class="l_b_line"></i>
+                        <i class="b_l_line"></i>
+                    </div>
+                    <div class="t_line_box">
+                        <i class="r_b_line"></i>
+                        <i class="b_r_line"></i>
+                    </div>
+                    <div class="main_title">
+                        <img src="/static/img/t_7.png" alt="">
+                        商品房上市趋势
+                    </div>
+                    <div id="chart_11" class="main_table t_btn8" style="width:100%;height: 250px"></div>
+                </div>
+            </div>
+            <div class="bottom_4">
+                <!--边框元素-->
+                <div class="t_line_box">
+                    <i class="t_l_line"></i>
+                    <i class="l_t_line"></i>
+                </div>
+                <div class="t_line_box">
+                    <i class="t_r_line"></i>
+                    <i class="r_t_line"></i>
+                </div>
+                <div class="t_line_box">
+                    <i class="l_b_line"></i>
+                    <i class="b_l_line"></i>
+                </div>
+                <div class="t_line_box">
+                    <i class="r_b_line"></i>
+                    <i class="b_r_line"></i>
+                </div>
+                <div class="main_title">
+                    <img src="/static/img/t_7.png" alt="">
+                    公租房面积/数量
+                </div>
+                <div id="chart_12" class="main_table t_btn8" style="width:100%;height: 250px"></div>
+            </div>
+        </div>
+
+        <!-- 第二行底部内容 -->
+        <div class="data_bottom" style="margin-top: 40px;">
+            <div class="bottom_1 t_btn5" style="cursor: pointer;">
+                <!--边框元素-->
+                <div class="t_line_box">
+                    <i class="t_l_line"></i>
+                    <i class="l_t_line"></i>
+                </div>
+                <div class="t_line_box">
+                    <i class="t_r_line"></i>
+                    <i class="r_t_line"></i>
+                </div>
+                <div class="t_line_box">
+                    <i class="l_b_line"></i>
+                    <i class="b_l_line"></i>
+                </div>
+                <div class="t_line_box">
+                    <i class="r_b_line"></i>
+                    <i class="b_r_line"></i>
+                </div>
+                <div class="main_title">
+                    <img src="/static/img/t_6.png" alt="">
+                    最具信用企业前十
+                </div>
+                <div id="chart_13" class="main_table t_btn8" style="width:100%;height: 250px"></div>
+            </div>
+            <div class="bottom_center">
+                <div class="bottom_2">
+                    <!--边框元素-->
+                    <div class="t_line_box">
+                        <i class="t_l_line"></i>
+                        <i class="l_t_line"></i>
+                    </div>
+                    <div class="t_line_box">
+                        <i class="t_r_line"></i>
+                        <i class="r_t_line"></i>
+                    </div>
+                    <div class="t_line_box">
+                        <i class="l_b_line"></i>
+                        <i class="b_l_line"></i>
+                    </div>
+                    <div class="t_line_box">
+                        <i class="r_b_line"></i>
+                        <i class="b_r_line"></i>
+                    </div>
+                    <div class="main_title">
+                        <img src="/static/img/t_7.png" alt="">
+                        最差信用企业前十
+                    </div>
+                    <div id="chart_14" class="main_table t_btn8" style="width:100%;height: 250px"></div>
+                </div>
+                <div class="bottom_3">
+                    <!--边框元素-->
+                    <div class="t_line_box">
+                        <i class="t_l_line"></i>
+                        <i class="l_t_line"></i>
+                    </div>
+                    <div class="t_line_box">
+                        <i class="t_r_line"></i>
+                        <i class="r_t_line"></i>
+                    </div>
+                    <div class="t_line_box">
+                        <i class="l_b_line"></i>
+                        <i class="b_l_line"></i>
+                    </div>
+                    <div class="t_line_box">
+                        <i class="r_b_line"></i>
+                        <i class="b_r_line"></i>
+                    </div>
+                    <div class="main_title">
+                        <img src="/static/img/t_7.png" alt="">
+                        银行资金持有趋势
+                    </div>
+                    <div id="chart_15" class="main_table t_btn8" style="width:100%;height: 250px"></div>
+                </div>
+            </div>
+            <div class="bottom_4">
+                <!--边框元素-->
+                <div class="t_line_box">
+                    <i class="t_l_line"></i>
+                    <i class="l_t_line"></i>
+                </div>
+                <div class="t_line_box">
+                    <i class="t_r_line"></i>
+                    <i class="r_t_line"></i>
+                </div>
+                <div class="t_line_box">
+                    <i class="l_b_line"></i>
+                    <i class="b_l_line"></i>
+                </div>
+                <div class="t_line_box">
+                    <i class="r_b_line"></i>
+                    <i class="b_r_line"></i>
+                </div>
+                <div class="main_title">
+                    <img src="/static/img/t_7.png" alt="">
+                    银行资金保有量
+                </div>
+                <div id="chart_16" class="main_table t_btn8" style="width:100%;height: 250px"></div>
+            </div>
         </div>
     </div>
 
-    <!-- 引入JS文件 -->
+    <!-- 脚本部分保持不变 -->
     <script src="/static/js/jquery-2.2.1.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/common.js"></script>
     <script src="/static/js/echarts.min.js"></script>
-    <script src="/static/main/car_sales0.js"></script>
+    <script src="/static/js/dataTool.js"></script>
+    <script src="/static/js/china.js"></script>
+    <script src="/static/js/tagcanvas.min.js"></script>
+    <script src="/static/js/area.js"></script>
+    <script src="/static/main/map.js"></script>
+    <script src="/static/main/car_sales.js"></script>
+    <script src="/static/main/zufang_shoufang_price_compare.js"></script>
+    <script src="/static/main/every_regions_zufang_count.js"></script>
+    <script src="/static/main/every_regions_ershoufang_count.js"></script>
+    <script src="/static/main/economic_active.js"></script>
+    <script src="/static/main/fang_wu_zheng_shou.js"></script>
+    <script src="/static/main/yu_shou_trend.js"></script>
+    <script src="/static/main/gong_zu_fang.js"></script>
+    <script src="/static/main/company_sorted.js"></script>
+    <script src="/static/main/company_sorted_bad.js"></script>
+    <script src="/static/main/bank_trend.js"></script>
+    <script src="/static/main/company_amont.js"></script>
 
+    <!-- 添加图表resize监听 -->
+    <script>
+        // 监听窗口大小变化，重新调整图表大小
+        window.addEventListener('resize', function () {
+            if (typeof myChart1 !== 'undefined') myChart1.resize();
+            if (typeof myChart2 !== 'undefined') myChart2.resize();
+            // 添加其他图表resize...
+        });
+    </script>
 </body>
 
 </html>

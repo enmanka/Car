@@ -122,4 +122,3 @@ function renderCarSalesChart(data) {
 
 // 页面加载完成后初始化模块
 document.addEventListener('DOMContentLoaded', initCarSalesModule);
-document.addEventListener('DOMContentLoaded', initCarSalesModule);
