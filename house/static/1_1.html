@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>懂车之家销量大数据可视化平台</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: linear-gradient(to right, #0f1c2e, #152a45);
+      font-family: 'Segoe UI', sans-serif;
+      color: #ffffff;
+    }
+    .dashboard {
+      display: flex;
+      height: 100vh;
+      padding: 10px;
+      gap: 10px;
+    }
+    .left-col, .middle-col, .right-col {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .left-col { width: 25%; }
+    .middle-col { width: 45%; }
+    .right-col { width: 30%; }
+    .panel {
+      background: linear-gradient(to bottom right, #0f3a5a, #0e585b);
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .panel h3 {
+      margin: 0 0 10px;
+      font-size: 18px;
+      color: #66ccff;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding-bottom: 5px;
+    }
+    .panel-content { flex: 1; position: relative; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      color: #fff;
+      table-layout: fixed;
+    }
+    th, td {
+      border-bottom: 1px solid #1f3c53;
+      padding: 6px;
+      text-align: left;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .gold-medal { color: gold; font-weight: bold; }
+    .silver-medal { color: silver; font-weight: bold; }
+    .bronze-medal { color: #cd7f32; font-weight: bold; }
+    #canvasContainer, #carCanvas {
+      width: 100%; height: 100%; position: relative; background: transparent;
+    }
+    #tooltip {
+      position: absolute; background: rgba(0,0,0,0.8); padding: 10px 15px; border-radius: 5px;
+      pointer-events: none; opacity: 0; transition: opacity 0.3s; font-size: 14px;
+      z-index: 100; color: #ffcc00;
+    }
+    #tooltip.show { opacity: 1; }
+    ul#carTags { display: none; }
+    .tag-link {
+      text-decoration: none; transition: all 0.3s; display: inline-block; position: relative;
+      cursor: pointer; color: #66ccff;
+    }
+    .tag-link:hover { text-shadow: 0 0 10px currentColor; }
+    .tag-link.active { text-shadow: 0 0 10px currentColor; z-index: 10; font-weight: bold; }
+    #carouselChina, #carouselChina .carousel-inner, #carouselChina .carousel-inner .item {
+      height: 400px;
+    }
+    #carouselChina .carousel-inner .item img {
+      width: 100%; height: 100%; object-fit: cover;
+    }
+    #carouselChina .carousel-control {
+      position: absolute; top: 50%; transform: translateY(-50%); width: 60px; height: 60px;
+      background: rgba(0,0,0,0.3); border-radius: 30px; display: flex; align-items: center;
+      justify-content: center; opacity: 0.7; cursor: pointer; z-index: 10;
+    }
+    #carouselChina .left.carousel-control  { left: 10px; }
+    #carouselChina .right.carousel-control { right: 10px; }
+    #carouselChina .carousel-control .fas {
+      font-size: 24px; color: #fff;
+    }
+    #carouselChina .carousel-control:hover { opacity: 1; background: rgba(0,0,0,0.5); }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <!-- 左列 -->
+    <div class="left-col">
+      <div class="panel panel-small">
+        <h3>热词词云图</h3>
+        <div class="panel-content" id="canvasContainer">
+          <canvas width="800" height="600" id="carCanvas">你的浏览器不支持HTML5 Canvas</canvas>
+          <div id="tooltip"></div>
+          <ul id="carTags"></ul>
+        </div>
+      </div>
+      <div class="panel panel-small">
+        <h3>销量柱状图</h3>
+        <div class="panel-content" id="barChart" style="width:100%; height:100%;"></div>
+      </div>
+    </div>
+
+    <!-- 中列 -->
+    <div class="middle-col">
+      <div class="panel panel-large">
+        <h3>汽车图片轮播</h3>
+        <div class="panel-content">
+          <div id="carouselChina" class="carousel slide" data-ride="carousel" data-interval="3500">
+            <ol class="carousel-indicators">
+              <li data-target="#carouselChina" data-slide-to="0" class="active"></li>
+              <li data-target="#carouselChina" data-slide-to="1"></li>
+              <li data-target="#carouselChina" data-slide-to="2"></li>
+              <li data-target="#carouselChina" data-slide-to="3"></li>
+            </ol>
+            <div class="carousel-inner" role="listbox">
+              <div class="item active">
+                <a href="https://www.audi.cn/zh.html" target="_blank">
+                  <img src="/static/img/ad1.png" alt="广告1" />
+                </a>
+              </div>
+              <div class="item">
+                <a href="https://www.xiaomiev.com/" target="_blank">
+                  <img src="/static/img/ad2.png" alt="广告2" />
+                </a>
+              </div>
+              <div class="item">
+                <a href="https://www.mercedes-benz.com.cn/" target="_blank">
+                  <img src="/static/img/ad3.png" alt="广告3" />
+                </a>
+              </div>
+              <div class="item">
+                <a href="https://hima.auto/wenjie/" target="_blank">
+                  <img src="/static/img/ad4.png" alt="广告4" />
+                </a>
+              </div>
+            </div>
+            <a class="left carousel-control" href="#carouselChina" role="button" data-slide="prev">
+              <i class="fas fa-chevron-left fa-2x" aria-hidden="true"></i>
+              <span class="sr-only">上一张</span>
+            </a>
+            <a class="right carousel-control" href="#carouselChina" role="button" data-slide="next">
+              <i class="fas fa-chevron-right fa-2x" aria-hidden="true"></i>
+              <span class="sr-only">下一张</span>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-small" onclick="goToMonthlySales()" style="cursor: pointer;">
+        <h3>销量走势折线图</h3>
+        <div class="panel-content" id="lineChart" style="width:100%; height:100%;"></div>
+      </div>
+    </div>
+
+    <!-- 右列 -->
+    <div class="right-col">
+      <div class="panel panel-full">
+        <h3>5月销量排行榜</h3>
+        <div class="panel-content" style="overflow-y: auto;">
+          <table>
+            <thead>
+              <tr><th>排名</th><th>车型</th><th>销量</th></tr>
+            </thead>
+            <tbody id="salesTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 依赖 -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud@2.0.0/dist/echarts-wordcloud.min.js"></script>
+  <script src="https://www.goat1000.com/tagcanvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js"></script>
+
+  <script>
+    function goToMonthlySales() {
+      window.parent.frames['contentFrame'].location.href = '../static/4.html';
+    }
+
+    // 加载排行榜数据（右列）
+    fetch('/data/getCarSalesByMonthAndType?type=all&month=05')
+      .then(res => res.json())
+      .then(data => {
+        const table = document.getElementById('salesTable');
+        table.innerHTML = '';
+        const top10 = data.sort((a, b) => a.ranking - b.ranking).slice(0, 15);
+        top10.forEach((car, index) => {
+          let medal;
+          if (index === 0) medal = '<span class="gold-medal">🥇</span>';
+          else if (index === 1) medal = '<span class="silver-medal">🥈</span>';
+          else if (index === 2) medal = '<span class="bronze-medal">🥉</span>';
+          else medal = index + 1;
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${medal}</td><td title="${car.car_name}">${car.car_name}</td><td>${car.sales}</td>`;
+          table.appendChild(tr);
+        });
+      });
+
+    // 初始化 ECharts 实例
+    var barChart = echarts.init(document.getElementById('barChart'));
+    var lineChart = echarts.init(document.getElementById('lineChart'));
+
+    // 加载数据并绘制销量柱状图（左列底部）
+    fetch('/data/getCarSalesByMonthAndType?type=all&month=05')
+      .then(res => res.json())
+      .then(data => {
+        data = data.sort((a, b) => b.sales - a.sales).slice(0, 10);
+        const names = data.map(d => d.car_name);
+        const sales = data.map(d => d.sales);
+        const option = {
+          tooltip: {
+            trigger: 'axis',
+            axisPointer: { type: 'shadow' }
+          },
+          xAxis: {
+            type: 'category',
+            data: names,
+            axisLabel: { rotate: 45, color: '#fff' },
+            axisLine: { lineStyle: { color: '#66ccff' } }
+          },
+          yAxis: {
+            type: 'value',
+            axisLine: { lineStyle: { color: '#66ccff' } },
+            splitLine: { show: false },
+            axisLabel: { color: '#fff' }
+          },
+          series: [{
+            type: 'bar',
+            data: sales,
+            itemStyle: { color: '#3398DB' },
+            barWidth: '50%'
+          }]
+        };
+        barChart.setOption(option);
+      });
+
+    // 加载数据并绘制销量走势折线图（中列下方）
+    fetch('/data/getMonthlySalesTrend?type=all')
+      .then(res => res.json())
+      .then(data => {
+        // data格式示例: [{month:"1月", sales:10000},...]
+        const months = data.map(d => d.month);
+        const sales = data.map(d => d.sales);
+        const option = {
+          tooltip: { trigger: 'axis' },
+          xAxis: {
+            type: 'category',
+            data: months,
+            axisLabel: { color: '#fff' },
+            axisLine: { lineStyle: { color: '#66ccff' } }
+          },
+          yAxis: {
+            type: 'value',
+            axisLabel: { color: '#fff' },
+            axisLine: { lineStyle: { color: '#66ccff' } },
+            splitLine: { lineStyle: { color: '#11334d' } }
+          },
+          series: [{
+            data: sales,
+            type: 'line',
+            smooth: true,
+            lineStyle: { color: '#66ccff' },
+            itemStyle: { color: '#66ccff' },
+            areaStyle: { color: 'rgba(102,204,255,0.2)' }
+          }]
+        };
+        lineChart.setOption(option);
+      });
+
+    // 词云和TagCanvas逻辑完整
+    document.addEventListener("DOMContentLoaded", function () {
+      const tooltip = document.getElementById("tooltip");
+      let isPaused = false;
+      let activeTag = null;
+      let clickedTag = null;
+
+      fetch("/data/getAllCarSales")
+        .then(res => res.json())
+        .then(data => {
+          const ul = document.getElementById("carTags");
+          const maxSales = Math.max(...data.map(item => item.value));
+          data.forEach(item => {
+            const li = document.createElement("li");
+            const a = document.createElement("a");
+            a.className = "tag-link";
+            a.href = "#";
+            a.textContent = item.name;
+            a.dataset.name = item.name;
+            a.dataset.sales = item.value.toLocaleString();
+            const fontSize = 10 + (item.value / maxSales) * 26;
+            a.style.fontSize = `${fontSize}px`;
+            const hue = Math.random() * 360;
+            a.style.color = `hsl(${hue}, 80%, 60%)`;
+
+            a.addEventListener("mouseenter", function (e) {
+              if (!isPaused && !clickedTag) TagCanvas.Pause("carCanvas");
+              isPaused = true;
+              activeTag = this;
+              tooltip.innerHTML = `<div>${this.dataset.name}</div><div style='color:#ffcc00;margin-top:5px;'>销量: ${this.dataset.sales}辆</div>`;
+              tooltip.classList.add("show");
+              updateTooltipPosition(e);
+            });
+
+            a.addEventListener("mousemove", updateTooltipPosition);
+
+            a.addEventListener("mouseleave", function () {
+              if (isPaused && !clickedTag) TagCanvas.Resume("carCanvas");
+              isPaused = false;
+              if (activeTag !== clickedTag) {
+                activeTag = null;
+                tooltip.classList.remove("show");
+              }
+            });
+
+            a.addEventListener("click", function (e) {
+              e.preventDefault();
+              if (clickedTag === this) {
+                this.classList.remove("active");
+                this.textContent = this.dataset.name;
+                clickedTag = null;
+                TagCanvas.Resume("carCanvas");
+                isPaused = false;
+                tooltip.classList.remove("show");
+                return;
+              }
+              if (clickedTag) {
+                clickedTag.classList.remove("active");
+                clickedTag.textContent = clickedTag.dataset.name;
+              }
+              this.classList.add("active");
+              this.textContent = `${this.dataset.name}：${this.dataset.sales}辆`;
+              clickedTag = this;
+              TagCanvas.Pause("carCanvas");
+              isPaused = true;
+              tooltip.innerHTML = `<div>${this.dataset.name}</div><div style='color:#ffcc00;margin-top:5px;'>销量: ${this.dataset.sales}辆</div>`;
+              tooltip.classList.add("show");
+              updateTooltipPosition(e);
+            });
+
+            li.appendChild(a);
+            ul.appendChild(li);
+          });
+
+          TagCanvas.Start("carCanvas", "carTags", {
+            textColour: null,
+            outlineColour: "transparent",
+            reverse: true,
+            depth: 0.8,
+            maxSpeed: 0.02,
+            minSpeed: 0.008,
+            initial: [0.03, -0.03],
+            decel: 0.98,
+            weight: true,
+            weightMode: "size",
+            weightSize: 1.5,
+            wheelZoom: false,
+            noSelect: true,
+            freezeActive: true,
+            freezeDecel: true,
+            tooltip: null,
+            fadeIn: 1500,
+            shuffleTags: true
+          });
+        });
+
+      function updateTooltipPosition(e) {
+        const target = activeTag || clickedTag;
+        if (!target) return;
+        const x = e.clientX + 15;
+        const y = e.clientY + 15;
+        const maxX = window.innerWidth - tooltip.offsetWidth - 10;
+        const maxY = window.innerHeight - tooltip.offsetHeight - 10;
+        tooltip.style.left = `${Math.min(x, maxX)}px`;
+        tooltip.style.top = `${Math.min(y, maxY)}px`;
+      }
+
+      window.addEventListener("resize", () => {
+        if ((activeTag || clickedTag) && tooltip.classList.contains("show")) {
+          const rect = (activeTag || clickedTag).getBoundingClientRect();
+          tooltip.style.left = `${rect.right + 5}px`;
+          tooltip.style.top = `${rect.top}px`;
+        }
+      });
+    });
+  </script>
+</body>
+</html>
