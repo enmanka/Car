@@ -56,6 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (isLogin) {
                 localStorage.setItem('authToken', data.token);
+                localStorage.setItem('username', username);  // 新增存储用户名
+                localStorage.setItem('avatarIndex', data.avatar_index);
                 window.location.href = '../static/main.html';
             } else {
                 isLogin = true;

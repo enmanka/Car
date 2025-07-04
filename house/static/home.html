@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>个人主页 - 数据分析平台</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet" />
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: #1e1e2f;
+            color: #f1f1f1;
+        }
+
+        .return-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background-color: #66fcf1;
+            color: #0b0c10;
+            padding: 8px 14px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: bold;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+        }
+
+        .return-btn i {
+            margin-right: 6px;
+            font-size: 18px;
+        }
+
+        .return-btn:hover {
+            background-color: #0b0c10;
+            color: #66fcf1;
+            transform: translateY(-2px);
+        }
+
+        .profile-container {
+            max-width: 900px;
+            margin: 80px auto 40px;
+            background: #2b2b3d;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            text-align: center;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 20px;
+            border: 3px solid #66fcf1;
+        }
+
+        .profile-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #444;
+        }
+
+        .nav-tab {
+            padding: 10px 20px;
+            margin: 0 10px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            color: #ccc;
+            transition: all 0.3s;
+        }
+
+        .nav-tab.active {
+            border-bottom-color: #66fcf1;
+            color: #fff;
+        }
+
+        .tab-content {
+            display: none;
+            text-align: left;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .content-box {
+            background-color: #3a3a50;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+        }
+
+        input,
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            margin: 6px 0;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        input {
+            background-color: #555;
+            color: #fff;
+        }
+
+        button {
+            background-color: #66fcf1;
+            color: #0b0c10;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #0b0c10;
+            color: #66fcf1;
+        }
+
+        .logout-container {
+            text-align: center;
+            margin: 40px auto 20px;
+            width: 100%;
+            max-width: 900px;
+            /* 与profile-container保持一致 */
+            padding: 0 40px;
+            /* 与profile-container的padding一致 */
+        }
+
+        .logout-small {
+            font-size: 13px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            background-color: #66fcf1;
+            color: #0b0c10;
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+            transition: all 0.3s;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .logout-small i {
+            margin-right: 6px;
+            font-size: 16px;
+        }
+
+        .logout-small:hover {
+            background-color: #0b0c10;
+            color: #66fcf1;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 返回按钮 -->
+    <a href="../static/main.html" class="return-btn">
+        <i class="ri-arrow-go-back-line"></i> 返回数据大屏
+    </a>
+
+    <!-- 用户个人主页 -->
+    <div class="profile-container">
+        <!-- 头像区域 -->
+        <img id="userAvatar" alt="头像" style="width:80px;cursor:pointer;border-radius:50%">
+
+        <!-- 弹出选择框（默认隐藏） -->
+        <div id="avatarModal"
+            style="display:none;position:absolute;background:#fff;padding:10px;border:1px solid #ccc;box-shadow:0 2px 10px rgba(0,0,0,0.2)">
+            <div id="avatarList" style="display:flex;gap:10px;flex-wrap:wrap;max-width:300px"></div>
+        </div>
+        <div class="profile-name" id="profileName"></div>
+
+        <div class="nav-tabs">
+            <div class="nav-tab active" onclick="switchTab('reviews')">发表的评价</div>
+            <div class="nav-tab" onclick="switchTab('downloads')">历史下载数据</div>
+            <div class="nav-tab" onclick="switchTab('password')">修改密码</div>
+        </div>
+
+        <div class="tab-content active" id="reviews">
+            <div class="content-box">
+                <p>暂无评价数据。</p>
+            </div>
+        </div>
+
+        <div class="tab-content" id="downloads">
+            <div class="content-box">
+                <ul id="download-list" style="list-style:none; padding:0; margin:0;">
+                    <!-- 下载记录将动态插入这里 -->
+                </ul>
+            </div>
+        </div>
+
+        <div class="tab-content" id="password">
+            <div class="content-box">
+                <form>
+                    <label>旧密码：</label>
+                    <input type="password" id="old-password" placeholder="请输入旧密码" /><br />
+                    <label>新密码：</label>
+                    <input type="password" id="new-password" placeholder="请输入新密码" /><br />
+                    <label>确认新密码：</label>
+                    <input type="password" id="confirm-password" placeholder="请再次输入新密码" /><br />
+                    <button type="button" id="change-btn">提交修改</button>
+                    <p id="change-message" style="margin-top:10px;"></p>
+            </div>
+        </div>
+    </div>
+    <!-- 退出登录按钮（底部居中） -->
+    <div class="logout-container">
+        <a href="/" id="logoutBtn" class="logout-small">
+            <i class="ri-logout-box-r-line"></i> 退出登录
+        </a>
+    </div>
+    <div class="footer">
+        © 2025 数据分析平台 | 版本 1.0
+    </div>
+
+    <script src="../static/main/home.js"></script>
+</body>
+
+</html>

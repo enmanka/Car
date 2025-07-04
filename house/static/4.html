@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
-
   <title>各系汽车月销量排行榜</title>
   <style>
     body {
@@ -13,16 +13,19 @@
       background-color: #121212;
       color: #fff;
     }
+
     .container {
       display: flex;
       height: 100vh;
       overflow: hidden;
     }
+
     .main {
       width: 70%;
       padding: 20px;
       overflow-y: auto;
     }
+
     .detail {
       width: 30%;
       border-left: 2px solid #333;
@@ -33,11 +36,13 @@
       overflow-y: auto;
       background-color: #121212;
     }
+
     .filters {
       display: flex;
       align-items: center;
       margin-bottom: 10px;
     }
+
     .category-btns button,
     .month-selector select {
       margin-right: 10px;
@@ -48,39 +53,48 @@
       color: #fff;
       cursor: pointer;
     }
+
     .category-btns button.active {
       background-color: orange;
       color: black;
     }
+
     .table-container {
       max-height: 75vh;
       overflow-y: auto;
       border: 1px solid #444;
     }
+
     table {
       width: 100%;
       border-collapse: collapse;
     }
-    th, td {
+
+    th,
+    td {
       border: 1px solid #444;
       padding: 10px;
       text-align: center;
     }
+
     tr:hover {
       background-color: #1e1e1e;
       cursor: pointer;
     }
+
     #carDetail img {
       max-width: 100%;
       max-height: 200px;
       margin-bottom: 10px;
     }
+
     .stars-outer {
       display: inline-block;
       position: relative;
       font-size: 16px;
       color: #ccc;
     }
+
     .stars-inner {
       position: absolute;
       top: 0;
@@ -89,30 +103,31 @@
       overflow: hidden;
       color: orange;
     }
+
     .export-csv-btn {
-    background: linear-gradient(135deg, #f39c12, #f1c40f);
-    border: none;
-    border-radius: 6px;
-    color: #000;
-    padding: 8px 16px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 8px rgba(255, 215, 0, 0.2);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+      background: linear-gradient(135deg, #f39c12, #f1c40f);
+      border: none;
+      border-radius: 6px;
+      color: #000;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 8px rgba(255, 215, 0, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-  .export-csv-btn:hover {
-    background: linear-gradient(135deg, #e67e22, #f39c12);
-    transform: translateY(-1px);
-    box-shadow: 0 6px 12px rgba(255, 165, 0, 0.3);
-  }
-
+    .export-csv-btn:hover {
+      background: linear-gradient(135deg, #e67e22, #f39c12);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 12px rgba(255, 165, 0, 0.3);
+    }
   </style>
 </head>
+
 <body>
   <div class="container">
     <div class="main">
@@ -135,11 +150,9 @@
           </select>
         </div>
         <!-- 导出按钮 -->
-        <div class="export-btn">
-          <button class="export-csv-btn" onclick="exportCSV()">
-            <i class="fas fa-download"></i> 导出 CSV
-          </button>
-        </div>
+        <button class="export-csv-btn" onclick="exportCSV()">
+          <i class="fas fa-download"></i> 导出 CSV
+        </button>
       </div>
 
       <div class="table-container">
@@ -223,8 +236,14 @@
         </div>`;
     }
     function exportCSV() {
-      const url = `/data/exportCarSalesCSV?type=${currentType}&month=${currentMonth}`;
-      window.open(url, '_blank');  // 直接在新标签页下载
+      const username = localStorage.getItem('username');
+      if (!username) {
+        alert('请先登录以导出数据');
+        return;
+      }
+
+      const url = `/data/exportCarSalesCSV?type=${currentType}&month=${currentMonth}&user_name=${encodeURIComponent(username)}`;
+      window.open(url, '_blank');  // 打开下载链接
     }
 
     window.onload = () => {
@@ -233,4 +252,5 @@
     };
   </script>
 </body>
+
 </html>
