@@ -332,38 +332,66 @@
         barChart.setOption(option);
       });
 
-    // 加载数据并绘制销量走势折线图（中列下方）
-    fetch('/data/getMonthlySalesTrend?type=all')
-      .then(res => res.json())
-      .then(data => {
-        // data格式示例: [{month:"1月", sales:10000},...]
-        const months = data.map(d => d.month);
-        const sales = data.map(d => d.sales);
-        const option = {
-          tooltip: { trigger: 'axis' },
-          xAxis: {
-            type: 'category',
-            data: months,
-            axisLabel: { color: '#fff' },
-            axisLine: { lineStyle: { color: '#66ccff' } }
-          },
-          yAxis: {
-            type: 'value',
-            axisLabel: { color: '#fff' },
-            axisLine: { lineStyle: { color: '#66ccff' } },
-            splitLine: { lineStyle: { color: '#11334d' } }
-          },
-          series: [{
-            data: sales,
+    function drawMPVTop5LineChart(start = '2025-01', end = '2025-05') {
+      fetch(`/api/mpv/monthly?startMonth=${start}&endMonth=${end}`)
+        .then(res => res.json())
+        .then(data => {
+          const months = data.months.map(m => m.slice(5) + '月'); // ['01月', '02月', ...]
+          const series = data.series;
+
+          // 1. 计算总销量并排序取前5
+          const sorted = series
+            .map(s => ({ model: s.model, data: s.data, total: s.data.reduce((a, b) => a + b, 0) }))
+            .sort((a, b) => b.total - a.total)
+            .slice(0, 5);  // Top5
+
+          // 2. 转成 ECharts 所需 series 数据格式
+          const topSeries = sorted.map(item => ({
+            name: item.model,
             type: 'line',
             smooth: true,
-            lineStyle: { color: '#66ccff' },
-            itemStyle: { color: '#66ccff' },
-            areaStyle: { color: 'rgba(102,204,255,0.2)' }
-          }]
-        };
-        lineChart.setOption(option);
-      });
+            data: item.data,
+            lineStyle: { width: 2 },
+            emphasis: { focus: 'series' }
+          }));
+
+          // 3. 画图
+          const option = {
+            title: {
+              text: 'MPV TOP5 销量走势',
+              left: 'center',
+              textStyle: { color: '#66ccff' }
+            },
+            tooltip: {
+              trigger: 'axis'
+            },
+            legend: {
+              top: 30,
+              textStyle: { color: '#fff' }
+            },
+            xAxis: {
+              type: 'category',
+              data: months,
+              axisLabel: { color: '#fff' },
+              axisLine: { lineStyle: { color: '#66ccff' } }
+            },
+            yAxis: {
+              type: 'value',
+              axisLabel: { color: '#fff' },
+              axisLine: { lineStyle: { color: '#66ccff' } },
+              splitLine: { lineStyle: { color: '#11334d' } }
+            },
+            series: topSeries
+          };
+
+          const chartDom = document.getElementById('lineChart');
+          const chart = echarts.init(chartDom);
+          chart.setOption(option);
+        })
+        .catch(err => {
+          console.error('折线图加载失败', err);
+        });
+    }
 
     // 词云和TagCanvas逻辑完整
     document.addEventListener("DOMContentLoaded", function () {
@@ -480,6 +508,8 @@
         }
       });
     });
+    // 页面加载后画出折线图
+   drawMPVTop5LineChart();
   </script>
 </body>
 </html>
