@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+
   <title>各系汽车月销量排行榜</title>
   <style>
     body {
@@ -87,6 +89,28 @@
       overflow: hidden;
       color: orange;
     }
+    .export-csv-btn {
+    background: linear-gradient(135deg, #f39c12, #f1c40f);
+    border: none;
+    border-radius: 6px;
+    color: #000;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(255, 215, 0, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .export-csv-btn:hover {
+    background: linear-gradient(135deg, #e67e22, #f39c12);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(255, 165, 0, 0.3);
+  }
+
   </style>
 </head>
 <body>
@@ -110,9 +134,11 @@
             <option value="05">5月</option>
           </select>
         </div>
-         <!-- 导出按钮 -->
+        <!-- 导出按钮 -->
         <div class="export-btn">
-          <button onclick="exportCSV()">导出 CSV</button>
+          <button class="export-csv-btn" onclick="exportCSV()">
+            <i class="fas fa-download"></i> 导出 CSV
+          </button>
         </div>
       </div>
 
