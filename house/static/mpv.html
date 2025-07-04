@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>MPV 各车每月销量</title>
+  <!-- Vue 3 -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <!-- Element-Plus -->
+  <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+  <script src="https://unpkg.com/element-plus"></script>
+  <!-- ECharts & axios -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <style>
+    body { margin:20px; font-family:'Microsoft YaHei'; }
+    .controls { display:flex; gap:10px; align-items:center; flex-wrap: wrap; }
+    #chart { width:100%; height:400px; margin-top:20px; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h2>MPV 各车每月销量</h2>
+
+    <div class="controls">
+      <el-autocomplete
+        v-model="modelQuery"
+        :fetch-suggestions="querySearchModel"
+        placeholder="请输入或选择车型名称"
+        :value-key="'value'"
+        style="width: 280px"
+        @select="onSelectModel"
+      >
+        <template #suggestion="{ item }">
+          {{ item.value }}
+        </template>
+      </el-autocomplete>
+      <el-button type="primary" @click="searchModel">查询单车</el-button>
+      <el-button type="success" @click="showTop5">查看 Top5</el-button>
+    </div>
+
+    <!-- 单车型时显示图片 -->
+    <div v-if="imageUrlRef" style="text-align:center; margin:10px 0;">
+      <el-image
+        :src="imageUrlRef"
+        fit="contain"
+        style="width:200px; height:120px; border:1px solid #eee; margin:auto"
+        :preview-src-list="[imageUrlRef]"
+      ></el-image>
+    </div>
+
+    <!-- 折线图 -->
+    <div id="chart"></div>
+
+    <!-- 明细表格 -->
+    <el-table
+      :data="tableData"
+      v-if="showTable"
+      stripe
+      style="width: 100%; margin-top: 20px"
+    >
+      <el-table-column prop="month"       label="月份"      /></el-table-column>
+      <el-table-column prop="model"       label="车型"      /></el-table-column>
+      <el-table-column prop="sales"       label="销量"      /></el-table-column>
+      <el-table-column prop="ranking"     label="排名"      /></el-table-column>
+      <el-table-column prop="rating"      label="评分"      /></el-table-column>
+      <el-table-column prop="price_range" label="价格区间"  /></el-table-column>
+    </el-table>
+  </div>
+
+  <script>
+    const { createApp, ref, onMounted } = Vue;
+    const { ElMessage } = ElementPlus;
+
+    createApp({
+      setup() {
+        const allModels      = ref([]);
+        const rawData        = ref({ months: [], series: [] });
+        const selectedSeries = ref([]);
+        const modelQuery     = ref('');
+        const tableData      = ref([]);
+        const loading        = ref(false);
+        const imageUrlRef    = ref(null);
+        const showTable      = ref(false);
+        let chartInst        = null;
+
+        onMounted(async () => {
+          chartInst = echarts.init(document.getElementById('chart'));
+          await initData();
+          // 自动读取 URL 参数并触发搜索
+          const params = new URLSearchParams(window.location.search);
+          const m = params.get('model');
+          if (m && m.trim()) {
+            modelQuery.value = m;
+            await searchModel();
+          }
+        });
+
+        async function initData() {
+          showTable.value = false;
+          loading.value = true;
+          try {
+            const [mres, res] = await Promise.all([
+              axios.get('/api/mpv/models'),
+              axios.get('/api/mpv/monthly', {
+                params: { startMonth:'2025-01', endMonth:'2025-05' }
+              })
+            ]);
+            allModels.value = mres.data.models;
+            rawData.value   = { months: res.data.months, series: res.data.series };
+            const top5 = [...rawData.value.series]
+              .sort((a,b)=> sum(b.data)-sum(a.data))
+              .slice(0,5)
+              .map(s=>s.model);
+            selectedSeries.value = rawData.value.series.filter(s=> top5.includes(s.model));
+            fillTableData(selectedSeries.value, rawData.value.months);
+            renderChart('MPV Top 5 每月销量');
+          } catch (e) {
+            console.error(e);
+            ElMessage.error('初始化失败，请检查后端接口');
+          } finally { loading.value = false; }
+        }
+
+        function renderChart(title) {
+          chartInst.clear();
+          chartInst.setOption({
+            title: { text: title, left: 'center' },
+            tooltip: { trigger: 'axis' },
+            legend: { data: selectedSeries.value.map(s=>s.model), top: '10%' },
+            xAxis: { type: 'category', data: rawData.value.months },
+            yAxis: { type: 'value' },
+            series: selectedSeries.value.map(s=>({ name: s.model, type:'line', data: s.data }))
+          });
+        }
+
+        function fillTableData(seriesArr, months) {
+          tableData.value = [];
+          seriesArr.forEach(s=>{
+            s.data.forEach((val,i)=>{
+              tableData.value.push({ month: months[i], model: s.model, sales: val, ranking: null, rating: null, price_range: '' });
+            });
+          });
+        }
+
+        function querySearchModel(query, cb) {
+          const list = allModels.value.filter(m=>m.includes(query)).map(m=>({ value:m }));
+          cb(list);
+        }
+        function onSelectModel(item) { modelQuery.value = item.value; }
+
+        async function searchModel() {
+          showTable.value = true;
+          const name = modelQuery.value.trim();
+          if (!name) return ElMessage.warning('请输入车型');
+          loading.value = true;
+          try {
+            const res = await axios.get('/api/mpv/monthly', { params: { model: name, startMonth:'2025-01', endMonth:'2025-05' } });
+            const { months=[], rows=[], imageUrl } = res.data;
+            tableData.value = rows;
+            selectedSeries.value = [{ model: name, data: rows.map(r=>r.sales) }];
+            rawData.value.months = months;
+            renderChart(`${name} 每月销量`);
+            imageUrlRef.value = imageUrl || null;
+          } catch (e) {
+            console.error(e);
+            ElMessage.error('查询失败，请检查车型名称或后端接口');
+          } finally { loading.value = false; }
+        }
+
+        function showTop5() {
+          showTable.value = false;
+          modelQuery.value = '';
+          const top5 = [...rawData.value.series]
+            .sort((a,b)=>sum(b.data)-sum(a.data))
+            .slice(0,5)
+            .map(s=>s.model);
+          selectedSeries.value = rawData.value.series.filter(s=> top5.includes(s.model));
+          fillTableData(selectedSeries.value, rawData.value.months);
+          renderChart('MPV Top 5 每月销量');
+          imageUrlRef.value = null;
+        }
+
+        function sum(arr){ return arr.reduce((a,b)=>a+b,0); }
+
+        return { modelQuery, tableData, loading, imageUrlRef, querySearchModel, onSelectModel, searchModel, showTop5, showTable };
+      }
+    }).use(ElementPlus).mount('#app');
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>特定类型汽车销量走势</title>
+
+
+    <style>
+        body { background-color: #0f2453; margin: 0; padding-top: 60px; }
+        .top-nav { position: fixed; top: 0; left: 0; width: 100%; height: 60px; background-color: #1a3a8f; display: flex; z-index: 1000; }
+        .top-nav .nav-item { flex: 1; text-align: center; line-height: 60px; color: #fff; font-size: 18px; cursor: pointer; border-right: 1px solid rgba(255,255,255,0.2);} 
+        .top-nav .nav-item:last-child { border-right: none; }
+        .top-nav .nav-item.active { background-color: rgba(255,255,255,0.1); font-weight: bold; }
+        .data_content { padding: 10px 20px; }
+        .chart-area, .left_1 { background-color: #1a3a8f; border-radius: 5px; padding: 10px 15px; margin-bottom: 15px; }
+        .main_title { font-size: 20px; color: #fff; margin-bottom: 10px; display: flex; align-items: center; }
+        .main_title img { margin-right: 10px; }
+        .compare-toggle { color: #fff; margin-left: auto; display: flex; align-items: center; font-size: 14px; }
+        .compare-toggle input { margin-right: 5px; }
+        .month-selector { margin: 5px 0 1px 0; display: flex; align-items: center; }
+        .month-selector label { color: #fff; margin-right: 10px; font-size:16px; }
+        #start-month, #end-month, #month-select { padding: 6px; background: rgba(255,255,255,0.8); border-radius:4px; border:none; font-size:16px; }
+        #sales-header, #sales-list .item { display: flex; align-items: center; padding: 10px 8px; color: #fff; }
+        #sales-header { font-weight: bold; font-size: 18px; border-bottom: 2px solid rgba(255,255,255,0.3); margin: 0 8px; }
+        #sales-header span, #sales-list .item .info span { flex: 1; text-align: center; font-size: 16px; }
+        #sales-header span:first-child, #sales-list .item img { flex: 0 0 60px; }
+        #sales-list .item { background-color: rgba(255,255,255,0.05); border-radius:4px; margin: 8px 8px; justify-content: space-between; }
+        #sales-list .item img { width:60px; height:40px; object-fit:cover; border-radius:4px; margin-right:10px; }
+        #sales-list .item .info { display:flex; align-items:center; flex:1; justify-content: space-between; }
+        #car_sales { width:100%; height:440px; margin-bottom:10px; background-color: #fff; }
+    </style>
+</head>
+
+<body>
+    <div class="top-nav">
+        <div class="nav-item active" data-type="sedan">轿车</div>
+        <div class="nav-item" data-type="suv">SUV</div>
+        <div class="nav-item" data-type="mpv">MPV</div>
+    </div>
+
+    <div class="data_content">
+        <div class="chart-area">
+            <div class="main_title">
+                <span id="trend-title">轿车销量趋势</span>
+                <div class="compare-toggle">
+                    <input type="checkbox" id="compare-checkbox"><label for="compare-checkbox">与其他类型对比</label>
+                </div>
+            </div>
+            <div id="car_sales" class="chart"></div>
+            <div class="month-selector" style="justify-content:center; margin:10px 0; gap:10px;">
+                <label>开始月份：</label>
+                <select id="start-month">
+                    <option value="01" selected>1月</option>
+                    <option value="02">2月</option>
+                    <option value="03">3月</option>
+                    <option value="04">4月</option>
+                    <option value="05">5月</option>
+                </select>
+                <label>结束月份：</label>
+                <select id="end-month">
+                    <option value="01">1月</option>
+                    <option value="02">2月</option>
+                    <option value="03">3月</option>
+                    <option value="04">4月</option>
+                    <option value="05" selected>5月</option>
+                </select>
+            </div>
+            
+        </div>
+
+        <div class="left_1">
+            <div class="month-selector">
+                <label>选择月份：</label>
+                <select id="month-select" style="margin-right:40px;">
+                    <option value="01">1月</option>
+                    <option value="02">2月</option>
+                    <option value="03">3月</option>
+                    <option value="04">4月</option>
+                    <option value="05" selected>5月</option>
+                </select>
+        <input
+            id="search-input"
+            type="text"
+            placeholder="请输入车型名称搜索"
+            style="margin-right:8px; padding:4px; width:200px;"
+        />
+
+        <!-- 查看单品销量按钮 -->
+        <button
+            type="button"
+            id="view-single-sales"
+            style="padding:4px 12px; cursor:pointer;"
+        >查看单品销量</button>
+            </div>
+            <div id="sales-header">
+                <span>图片</span>
+                <span>车名</span>
+                <span>当月排名</span>
+                <span>口碑评分</span>
+                <span>价格区间</span>
+                <span>销量</span>
+            </div>
+            <div id="sales-list"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@2.2.1/dist/jquery.min.js"></script>
+    <script>window.jQuery||document.write('<script src="/js/jquery-2.2.1.min.js">\u003c/script>');</script>
+    <script src="/static/js/echarts.min.js"></script>
+    <script>
+    (function($) {
+        var typeMap = { sedan: '轿车', suv: 'SUV', mpv: 'MPV' };
+        var chart;
+
+        function renderTrend() {
+            var selectedType = $('.top-nav .nav-item.active').data('type');
+            var start = $('#start-month').val();
+            var end = $('#end-month').val();
+            var compare = $('#compare-checkbox').prop('checked');
+            var types = compare ? ['sedan','suv','mpv'] : [selectedType];
+            var fetches = types.map(function(type) {
+                return $.getJSON('/api/car-sales-trend', { type: type, start: start, end: end })
+                    .then(function(res) {
+                        return { type: type, months: res.months, totals: res.totals };
+                    });
+            });
+            Promise.all(fetches).then(function(resultsArray) {
+                if (!resultsArray.length) return;
+                var months = resultsArray[0].months;
+                var series = resultsArray.map(function(obj) {
+                    return {
+                        name: typeMap[obj.type],
+                        type: 'line',
+                        data: obj.totals,
+                        smooth: false,
+                        lineStyle: { width: 2 }
+                    };
+                });
+                updateTrendChart(months, series);
+                $('#trend-title').text((compare ? '对比' : typeMap[selectedType]) + start + '月 - ' + end + '月销量趋势');
+            }).catch(function(err) {
+                console.error('趋势接口调用失败', err);
+            });
+        }
+
+        function updateTrendChart(months, series) {
+            if (!chart) {
+                chart = echarts.init(document.getElementById('car_sales'));
+            } else {
+                chart.clear();
+            }
+            chart.setOption({
+                backgroundColor: '#fff',
+                tooltip: {},
+                legend: { data: series.map(s => s.name), top: 10 },
+                xAxis: { type: 'category', data: months.map(m => m + '月'), axisLabel: { color: '#333' } },
+                yAxis: { type: 'value', axisLabel: { color: '#333' } },
+                grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                series: series
+            });
+        }
+
+        function loadData() {
+            var type = $('.top-nav .nav-item.active').data('type');
+            var month = $('#month-select').val();
+            $('#sales-list').text('加载中…');
+            $.getJSON('/api/car-sales', { type: type, month: month })
+            .done(function(data) {
+                var $list = $('#sales-list').empty();
+                data.forEach(function(item) {
+                    $list.append(
+                        '<div class="item">'
+                        + '<img src="' + item.image_url + '">' 
+                        + '<div class="info">'
+                        + '<span>' + item.car_name + '</span>'
+                        + '<span>' + item.ranking + '</span>'
+                        + '<span>' + item.rating + '</span>'
+                        + '<span>' + item.price_range + '</span>'
+                        + '<span>' + item.sales + '</span>'
+                        + '</div>'
+                        + '</div>'
+                    );
+                });
+            });
+        }
+
+        $(function() {
+            $('.top-nav .nav-item').click(function() {
+                $('.top-nav .nav-item').removeClass('active');
+                $(this).addClass('active');
+                renderTrend();
+                loadData();
+            });
+            $('#start-month, #end-month').change(renderTrend);
+            $('#compare-checkbox').change(renderTrend);
+            $('#month-select').change(loadData);
+            renderTrend();
+            loadData();
+        });
+
+    })(jQuery);
+    </script>
+
+    <script>
+    document.getElementById('view-single-sales').onclick = function() {
+        var searchVal = document.getElementById('search-input').value.trim();
+        // 先拿到当前激活的车型 type（sedan/suv/mpv）
+        var active = document.querySelector('.top-nav .nav-item.active');
+        if (!active) {
+        alert('无法识别车型');
+        return;
+        }
+        var type = active.getAttribute('data-type');
+        // 不同车型对应不同详情页
+        var pageMap = {
+        sedan: '../static/jiaoche.html',
+        suv:   '../static/suv.html',
+        mpv:   '../static/mpv.html'
+        };
+        var target = pageMap[type];
+        if (!target) {
+        alert('未配置该车型详情页');
+        return;
+        }
+        // 如果搜索栏有文字，就带 model 参数；否则直接跳转
+        if (searchVal) {
+        window.location.href = target + '?model=' + encodeURIComponent(searchVal);
+        } else {
+        window.location.href = target;
+        }
+    };
+    </script>
+      <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const m = params.get('model');
+      if (m) {
+        // 填入输入框（如果你用的是 ref 或 reactive，根据你的实现改）
+        modelQuery.value = m;
+        // 自动触发搜索
+        searchModel();
+      }
+    });
+  </script>
+
+</body>
+</html>
