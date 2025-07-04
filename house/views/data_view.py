@@ -102,7 +102,7 @@ def export_car_sales_csv():
         db.session.add(export_record)
         db.session.commit()
     except Exception as e:
-        # 如果插入记录失败，打印错误但仍返回文件
+        # 如果插入记录失败，打印错误仍返回文件
         print(f"插入导出记录失败: {e}")
 
     response = Response(output.getvalue().encode('utf-8-sig'), mimetype='text/csv')
@@ -326,15 +326,19 @@ def get_car_sales_by_month():
 @data.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
-    
+
     # 检查用户名是否存在
     if User.query.filter_by(usr_name=data['usr_name']).first():
         return jsonify({"error": "用户名已存在"}), 400
     
+    # 获取头像索引，若未提供则默认值为 1
+    avatar_index = data.get('avatar_index', 1)
+
     # 创建新用户
     new_user = User(
         usr_name=data['usr_name'],
-        pwd=generate_password_hash(data['pwd'])  # 存储salt:iterations:hash
+        pwd=generate_password_hash(data['pwd']),  # 注意这里添加逗号
+        avatar_index=avatar_index  # 修正参数赋值格式
     )
     db.session.add(new_user)
     db.session.commit()
