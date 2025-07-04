@@ -15,6 +15,7 @@ import secrets
 
 from house.config import db
 from house.dbmodule.bank_trend import BankTrend
+from house.dbmodule.car_follow import CarFollow
 from house.dbmodule.city_count import CityCount
 from house.dbmodule.company_amont import CompanyAmont
 from house.dbmodule.company_sorted import CompanySorted
@@ -162,6 +163,45 @@ def get_car_sales_by_month_type():
         tb = traceback.format_exc()
         print(tb)  # 服务器终端打印完整异常栈，方便查错
         return jsonify({"error": str(e), "trace": tb}), 500
+
+
+@data.route('/getCarFollow')
+def get_car_follow():
+
+    # 找出北京关注度前十的汽车名
+    beijing_top_ten = (
+        db.session.query(CarFollow.car_name)
+        .filter(CarFollow.city_range == '北京')
+        .order_by(CarFollow.follow.desc())
+        .limit(18)
+        .all()
+    )
+    beijing_top_ten_car_names = [item.car_name for item in beijing_top_ten]
+
+    if not beijing_top_ten_car_names:
+        return jsonify([])
+
+    # 查询其他城市这些汽车的关注度
+    result = (
+        db.session.query(CarFollow.city_range, CarFollow.car_name, CarFollow.follow)
+        .filter(
+            CarFollow.car_name.in_(beijing_top_ten_car_names),
+            CarFollow.city_range != '北京'
+        )
+        .all()
+    )
+
+    # 格式化数据
+    items = []
+    for row in result:
+        items.append({
+            "car_name": row.car_name,
+            "city_range": row.city_range,
+            "follow": row.follow
+        })
+
+    # 把数据打包成 JSON 并返回
+    return jsonify(items)
 
 @data.route('/update_avatar', methods=['POST'])
 def update_avatar():

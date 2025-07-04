@@ -1,4 +1,5 @@
 from house.config import app
+from house.views.api_view import api
 from house.views.data_view import data
 from house.views.page_view import page
 from house.views.mpv_view import mpv_bp

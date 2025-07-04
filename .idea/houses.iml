@@ -6,6 +6,9 @@
     </content>
     <orderEntry type="jdk" jdkName="Python 3.13 (houses)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="echarts" level="application" />
+    <orderEntry type="library" name="echarts-gl" level="application" />
+    <orderEntry type="library" name="jquery" level="application" />
   </component>
   <component name="PyDocumentationSettings">
     <option name="format" value="PLAIN" />
