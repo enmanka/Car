@@ -5,6 +5,7 @@ from house.views.page_view import page
 from house.views.mpv_view import mpv_bp
 from house.views.jiaoche_view import jiaoche_bp
 from house.views.api_view import  api
+from house.views.suv_view import suv_bp
 
 app.register_blueprint(data, url_prefix="/data")
 app.register_blueprint(page, url_prefix="/")
