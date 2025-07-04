@@ -109,6 +109,10 @@
             <option value="05">5月</option>
           </select>
         </div>
+         <!-- 导出按钮 -->
+        <div class="export-btn">
+          <button onclick="exportCSV()">导出 CSV</button>
+        </div>
       </div>
 
       <div class="table-container">
@@ -190,6 +194,10 @@
           ★★★★★
           <div class="stars-inner" style="width: ${percent}%;">★★★★★</div>
         </div>`;
+    }
+    function exportCSV() {
+      const url = `/data/exportCarSalesCSV?type=${currentType}&month=${currentMonth}`;
+      window.open(url, '_blank');  // 直接在新标签页下载
     }
 
     window.onload = () => {

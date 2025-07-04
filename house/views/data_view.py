@@ -8,6 +8,12 @@ from sqlalchemy import func
 import hashlib
 import secrets
 
+import csv
+import io
+from datetime import datetime
+from flask import Response 
+from urllib.parse import quote
+
 from house.config import db
 from house.dbmodule.bank_trend import BankTrend
 from house.dbmodule.city_count import CityCount
@@ -24,6 +30,8 @@ from house.dbmodule.user import User
 from house.dbmodule.yu_shou_trend import YuShouTrend
 from house.dbmodule.zufang_shoufang_price_compare import ZufangShoufangPriceCompare
 from house.dbmodule.car_month import CarMonth
+from sqlalchemy import text
+from urllib.parse import quote 
 
 """
 本视图专门用于处理ajax数据
@@ -55,7 +63,36 @@ def check_password_hash(hashed_password, input_password):
     )
     return stored_hash == new_hash.hex()
 
-import traceback
+
+
+@data.route('/exportCarSalesCSV')
+def export_car_sales_csv():
+    car_type = request.args.get('type', 'jiaoche')
+    month = request.args.get('month', '01')
+    table_name = f"{car_type}_{month}"  # 例如 jiaoche_01
+
+    try:
+        sql = text(f"SELECT ranking, car_name, sales, rating, price_range FROM {table_name} ORDER BY ranking LIMIT 50")
+        result = db.session.execute(sql).fetchall()
+    except Exception as e:
+        return Response(f"查询失败: {str(e)}", status=500)
+
+    # 构造 CSV 数据
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['排名', '车型', '销量', '口碑评分', '价格区间'])  # 表头
+    for row in result:
+        writer.writerow(row)
+
+    # 当前日期时间作为文件名后缀
+    now_str = datetime.now().strftime('%Y%m%d_%H%M%S')
+    filename = f"{car_type}_{month}_销量榜_{now_str}.csv"
+
+    response = Response(output.getvalue().encode('utf-8-sig'), mimetype='text/csv')
+    # ✅ 用 filename*= 代替原 filename，且不要再设置 filename=""
+    response.headers['Content-Disposition'] = f"attachment; filename*=UTF-8''{quote(filename)}"
+
+    return response
 
 @data.route('/getCarSalesByMonthAndType', methods=['GET'])
 def get_car_sales_by_month_type():
