@@ -59,9 +59,69 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
+    #salesTable {
+      border-collapse: separate; /* 避免合并边框 */
+      border-spacing: 0 6px; /* 行间距6px制造间隙 */
+      width: 100%;
+      table-layout: fixed;
+      color: #fff;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    /* 行整体相对定位，留位置放背景条 */
+    #salesTable tr {
+      position: relative;
+      height: 40px;
+      background: transparent; /* 透明背景，条形条自己填色 */
+      cursor: pointer;
+    }
+
+    /* 每行底部分隔线，用margin替代border防止影响布局 */
+    #salesTable tr:not(:last-child) {
+      margin-bottom: 6px;
+    }
+
+
+    /* 透明条形背景，基于 #66fcf1 渐变 */
+    #salesTable tr .row-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      border-radius: 8px;
+      background: linear-gradient(90deg, rgba(102,252,241,0.4), rgba(102,252,241,0.15));
+      z-index: 0;
+      pointer-events: none;
+      box-shadow: 0 0 8px rgba(102,252,241,0.6);
+    }
+
+    /* 鼠标悬停时加深色和阴影 */
+    #salesTable tr:hover .row-bar {
+      background: linear-gradient(90deg, rgba(102,252,241,0.7), rgba(102,252,241,0.3));
+      box-shadow: 0 0 12px rgba(102,252,241,0.9);
+    }
+
+
+
+    /* td层级高于背景条，文本白色加阴影 */
+    #salesTable tr td {
+      position: relative;
+      z-index: 1;
+      padding-left: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow: 0 0 3px rgba(0,0,0,0.6);
+    }
+
+
+    /* 奖牌颜色 */
     .gold-medal { color: gold; font-weight: bold; }
     .silver-medal { color: silver; font-weight: bold; }
     .bronze-medal { color: #cd7f32; font-weight: bold; }
+
     #canvasContainer, #carCanvas {
       width: 100%; height: 100%; position: relative; background: transparent;
     }
@@ -200,18 +260,39 @@
       .then(data => {
         const table = document.getElementById('salesTable');
         table.innerHTML = '';
-        const top10 = data.sort((a, b) => a.ranking - b.ranking).slice(0, 15);
+        const top10 = data.sort((a, b) => a.ranking - b.ranking).slice(0, 10);
+        const maxSales = Math.max(...top10.map(c => c.sales));
+
         top10.forEach((car, index) => {
           let medal;
           if (index === 0) medal = '<span class="gold-medal">🥇</span>';
           else if (index === 1) medal = '<span class="silver-medal">🥈</span>';
           else if (index === 2) medal = '<span class="bronze-medal">🥉</span>';
           else medal = index + 1;
+
           const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${medal}</td><td title="${car.car_name}">${car.car_name}</td><td>${car.sales}</td>`;
+
+          const barWidthPercent = Math.max((car.sales / maxSales) * 100, 10);
+
+          tr.innerHTML = `
+            <td>${medal}</td>
+            <td title="${car.car_name}">${car.car_name}</td>
+            <td>${car.sales}</td>
+          `;
+
+          // 创建条形背景div，宽度按销量比例
+          const barDiv = document.createElement('div');
+          barDiv.className = 'row-bar';
+          barDiv.style.width = barWidthPercent + '%';
+
+          // 添加到 tr 中，作为背景条
+          tr.appendChild(barDiv);
+
           table.appendChild(tr);
         });
       });
+
+
 
     // 初始化 ECharts 实例
     var barChart = echarts.init(document.getElementById('barChart'));
