@@ -7,11 +7,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>特定类型汽车销量走势</title>
 
-
     <style>
         body { background-color: #0f2453; margin: 0; padding-top: 60px; }
         .top-nav { position: fixed; top: 0; left: 0; width: 100%; height: 60px; background-color: #1a3a8f; display: flex; z-index: 1000; }
-        .top-nav .nav-item { flex: 1; text-align: center; line-height: 60px; color: #fff; font-size: 18px; cursor: pointer; border-right: 1px solid rgba(255,255,255,0.2);} 
+        .top-nav .nav-item { flex: 1; text-align: center; line-height: 60px; color: #fff; font-size: 18px; cursor: pointer; border-right: 1px solid rgba(255,255,255,0.2); }
         .top-nav .nav-item:last-child { border-right: none; }
         .top-nav .nav-item.active { background-color: rgba(255,255,255,0.1); font-weight: bold; }
         .data_content { padding: 10px 20px; }
@@ -20,17 +19,19 @@
         .main_title img { margin-right: 10px; }
         .compare-toggle { color: #fff; margin-left: auto; display: flex; align-items: center; font-size: 14px; }
         .compare-toggle input { margin-right: 5px; }
-        .month-selector { margin: 5px 0 1px 0; display: flex; align-items: center; }
-        .month-selector label { color: #fff; margin-right: 10px; font-size:16px; }
-        #start-month, #end-month, #month-select { padding: 6px; background: rgba(255,255,255,0.8); border-radius:4px; border:none; font-size:16px; }
+        .month-selector { margin: 5px 0 1px 0; display: flex; align-items: center; gap: 10px; }
+        .month-selector label { color: #fff; font-size: 16px; }
+        #start-month, #end-month, #month-select { padding: 6px; background: rgba(255,255,255,0.8); border-radius: 4px; border: none; font-size: 16px; }
         #sales-header, #sales-list .item { display: flex; align-items: center; padding: 10px 8px; color: #fff; }
         #sales-header { font-weight: bold; font-size: 18px; border-bottom: 2px solid rgba(255,255,255,0.3); margin: 0 8px; }
         #sales-header span, #sales-list .item .info span { flex: 1; text-align: center; font-size: 16px; }
         #sales-header span:first-child, #sales-list .item img { flex: 0 0 60px; }
-        #sales-list .item { background-color: rgba(255,255,255,0.05); border-radius:4px; margin: 8px 8px; justify-content: space-between; }
-        #sales-list .item img { width:60px; height:40px; object-fit:cover; border-radius:4px; margin-right:10px; }
-        #sales-list .item .info { display:flex; align-items:center; flex:1; justify-content: space-between; }
-        #car_sales { width:100%; height:440px; margin-bottom:10px; background-color: #fff; }
+        #sales-list .item { background-color: rgba(255,255,255,0.05); border-radius: 4px; margin: 8px 8px; justify-content: space-between; }
+        #sales-list .item img { width: 60px; height: 40px; object-fit: cover; border-radius: 4px; margin-right: 10px; }
+        #sales-list .item .info { display: flex; align-items: center; flex: 1; justify-content: space-between; }
+        /* 新增：让车名链接在深色背景上呈现为黑色 */
+        #sales-list .item .info a { color: #fff; text-decoration: none; }
+        #car_sales { width: 100%; height: 440px; margin-bottom: 10px; background-color: #fff; }
     </style>
 </head>
 
@@ -50,7 +51,7 @@
                 </div>
             </div>
             <div id="car_sales" class="chart"></div>
-            <div class="month-selector" style="justify-content:center; margin:10px 0; gap:10px;">
+            <div class="month-selector">
                 <label>开始月份：</label>
                 <select id="start-month">
                     <option value="01" selected>1月</option>
@@ -68,7 +69,6 @@
                     <option value="05" selected>5月</option>
                 </select>
             </div>
-            
         </div>
 
         <div class="left_1">
@@ -81,19 +81,8 @@
                     <option value="04">4月</option>
                     <option value="05" selected>5月</option>
                 </select>
-        <input
-            id="search-input"
-            type="text"
-            placeholder="请输入车型名称搜索"
-            style="margin-right:8px; padding:4px; width:200px;"
-        />
-
-        <!-- 查看单品销量按钮 -->
-        <button
-            type="button"
-            id="view-single-sales"
-            style="padding:4px 12px; cursor:pointer;"
-        >查看单品销量</button>
+                <input id="search-input" type="text" placeholder="请输入车型名称搜索" style="margin-right:8px; padding:4px; width:200px;" />
+                <button type="button" id="view-single-sales" style="padding:4px 12px; cursor:pointer;">查看单品销量</button>
             </div>
             <div id="sales-header">
                 <span>图片</span>
@@ -173,9 +162,9 @@
                 data.forEach(function(item) {
                     $list.append(
                         '<div class="item">'
-                        + '<img src="' + item.image_url + '">' 
+                        + '<img src="' + item.image_url + '">'
                         + '<div class="info">'
-                        + '<span>' + item.car_name + '</span>'
+                        + '<span><a href="javascript:;" onclick="goDetail(\'' + item.car_name + '\')">' + item.car_name + '</a></span>'
                         + '<span>' + item.ranking + '</span>'
                         + '<span>' + item.rating + '</span>'
                         + '<span>' + item.price_range + '</span>'
@@ -205,46 +194,32 @@
     </script>
 
     <script>
+    // 查看单品销量按钮及搜索框逻辑
     document.getElementById('view-single-sales').onclick = function() {
         var searchVal = document.getElementById('search-input').value.trim();
-        // 先拿到当前激活的车型 type（sedan/suv/mpv）
         var active = document.querySelector('.top-nav .nav-item.active');
-        if (!active) {
-        alert('无法识别车型');
-        return;
-        }
+        if (!active) { alert('无法识别车型'); return; }
         var type = active.getAttribute('data-type');
-        // 不同车型对应不同详情页
-        var pageMap = {
-        sedan: '../static/jiaoche.html',
-        suv:   '../static/suv.html',
-        mpv:   '../static/mpv.html'
-        };
+        var pageMap = { sedan: '../static/jiaoche.html', suv: '../static/suv.html', mpv: '../static/mpv.html' };
         var target = pageMap[type];
-        if (!target) {
-        alert('未配置该车型详情页');
-        return;
-        }
-        // 如果搜索栏有文字，就带 model 参数；否则直接跳转
+        if (!target) { alert('未配置该车型详情页'); return; }
         if (searchVal) {
-        window.location.href = target + '?model=' + encodeURIComponent(searchVal);
+            window.location.href = target + '?model=' + encodeURIComponent(searchVal);
         } else {
-        window.location.href = target;
+            window.location.href = target;
         }
     };
-    </script>
-      <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      const params = new URLSearchParams(window.location.search);
-      const m = params.get('model');
-      if (m) {
-        // 填入输入框（如果你用的是 ref 或 reactive，根据你的实现改）
-        modelQuery.value = m;
-        // 自动触发搜索
-        searchModel();
-      }
-    });
-  </script>
 
+    // 点击车名链接跳转到详情并隐式搜索
+    function goDetail(modelName) {
+        var active = document.querySelector('.top-nav .nav-item.active');
+        if (!active) { alert('无法识别车型'); return; }
+        var type = active.getAttribute('data-type');
+        var pageMap = { sedan: '../static/jiaoche.html', suv: '../static/suv.html', mpv: '../static/mpv.html' };
+        var target = pageMap[type];
+        if (!target) { alert('未配置该车型详情页'); return; }
+        window.location.href = target + '?model=' + encodeURIComponent(modelName);
+    }
+    </script>
 </body>
 </html>
