@@ -4,15 +4,14 @@ import json
 from flask import Blueprint, jsonify, request
 from flask_cors import CORS
 from sqlalchemy import func
-
-import hashlib
-import secrets
-
 import csv
 import io
 from datetime import datetime
 from flask import Response 
 from urllib.parse import quote
+
+import hashlib
+import secrets
 
 from house.config import db
 from house.dbmodule.bank_trend import BankTrend
@@ -30,6 +29,8 @@ from house.dbmodule.user import User
 from house.dbmodule.yu_shou_trend import YuShouTrend
 from house.dbmodule.zufang_shoufang_price_compare import ZufangShoufangPriceCompare
 from house.dbmodule.car_month import CarMonth
+from house.dbmodule.export_record import ExportRecord
+
 from sqlalchemy import text
 from urllib.parse import quote 
 
@@ -63,12 +64,14 @@ def check_password_hash(hashed_password, input_password):
     )
     return stored_hash == new_hash.hex()
 
-
-
 @data.route('/exportCarSalesCSV')
 def export_car_sales_csv():
     car_type = request.args.get('type', 'jiaoche')
     month = request.args.get('month', '01')
+    user_name = request.args.get('user_name')  # 从前端获取用户名
+    if not user_name:
+        return Response("缺少用户名参数", status=400)
+
     table_name = f"{car_type}_{month}"  # 例如 jiaoche_01
 
     try:
@@ -84,15 +87,48 @@ def export_car_sales_csv():
     for row in result:
         writer.writerow(row)
 
-    # 当前日期时间作为文件名后缀
-    now_str = datetime.now().strftime('%Y%m%d_%H%M%S')
+    now = datetime.now()
+    now_str = now.strftime('%Y%m%d_%H%M%S')
     filename = f"{car_type}_{month}_销量榜_{now_str}.csv"
 
+    # 插入导出记录
+    try:
+        export_record = ExportRecord(
+            user_name=user_name,
+            export_time=now,
+            csv_filename=filename
+        )
+        db.session.add(export_record)
+        db.session.commit()
+    except Exception as e:
+        # 如果插入记录失败，打印错误但仍返回文件
+        print(f"插入导出记录失败: {e}")
+
     response = Response(output.getvalue().encode('utf-8-sig'), mimetype='text/csv')
-    # ✅ 用 filename*= 代替原 filename，且不要再设置 filename=""
     response.headers['Content-Disposition'] = f"attachment; filename*=UTF-8''{quote(filename)}"
 
     return response
+
+@data.route('/getExportRecords')
+def get_export_records():
+    user_name = request.args.get('user_name')
+    if not user_name:
+        return jsonify({'error': '缺少用户名参数'}), 400
+
+    try:
+        records = ExportRecord.query.filter_by(user_name=user_name).order_by(ExportRecord.export_time.desc()).all()
+        # 转成可json化格式
+        records_list = [{
+            'id': r.id,
+            'user_name': r.user_name,
+            'export_time': r.export_time.strftime('%Y-%m-%d %H:%M:%S'),
+            'csv_filename': r.csv_filename
+        } for r in records]
+        return jsonify(records_list)
+    except Exception as e:
+        return jsonify({'error': f'查询失败: {str(e)}'}), 500
+
+import traceback
 
 @data.route('/getCarSalesByMonthAndType', methods=['GET'])
 def get_car_sales_by_month_type():
@@ -126,6 +162,24 @@ def get_car_sales_by_month_type():
         tb = traceback.format_exc()
         print(tb)  # 服务器终端打印完整异常栈，方便查错
         return jsonify({"error": str(e), "trace": tb}), 500
+
+@data.route('/update_avatar', methods=['POST'])
+def update_avatar():
+    data = request.get_json()
+    username = data.get('usr_name')
+    avatar_index = data.get('avatar_index')
+
+    if not username or not avatar_index:
+        return jsonify({'error': '参数不完整'}), 400
+
+    user = User.query.filter_by(usr_name=username).first()
+    if not user:
+        return jsonify({'error': '用户不存在'}), 404
+
+    user.avatar_index = avatar_index
+    db.session.commit()
+
+    return jsonify({'message': '头像更新成功'}), 200
 
 @data.route('/getCarSales')
 def get_acar_sales():
@@ -262,8 +316,33 @@ def login():
     return jsonify({
         "message": "登录成功",
         "token": token,
-        "user": {"username": user.usr_name}
+        "username": user.usr_name,
+        "avatar_index": user.avatar_index
     })
+
+@data.route('/change_password', methods=['POST'])
+def change_password():
+    data = request.get_json()
+
+    usr_name = data.get('usr_name')
+    old_pwd = data.get('old_pwd')
+    new_pwd = data.get('new_pwd')
+
+    if not usr_name or not old_pwd or not new_pwd:
+        return jsonify({"error": "参数不完整"}), 400
+
+    user = User.query.filter_by(usr_name=usr_name).first()
+    if not user:
+        return jsonify({"error": "用户不存在"}), 404
+
+    if not check_password_hash(user.pwd, old_pwd):
+        return jsonify({"error": "旧密码错误"}), 401
+
+    # 更新新密码
+    user.pwd = generate_password_hash(new_pwd)
+    db.session.commit()
+
+    return jsonify({"message": "密码修改成功"}), 200
 
 @data.route('/getMap', methods=['GET'])
 def get_map():
