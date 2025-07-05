@@ -142,183 +142,185 @@
     </div>
   </div>
 
-  <script>
-    let currentType = 'all';
-    let currentMonth = '01';
-    let COMMENT_SORT = 'hot'; // 'hot' 或 'time'
+<script>
+  let currentType = 'all';
+  let currentMonth = '01';
+  let COMMENT_SORT = 'hot'; // 'hot' 或 'time'
 
-    function showToast(msg, duration = 2000) {
-      const t = document.createElement('div');
-      t.className = 'toast';
-      t.textContent = msg;
-      document.body.appendChild(t);
-      requestAnimationFrame(() => t.classList.add('show'));
-      setTimeout(() => {
-        t.classList.remove('show');
-        setTimeout(() => document.body.removeChild(t), 300);
-      }, duration);
-    }
+  function showToast(msg, duration = 2000) {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    requestAnimationFrame(() => t.classList.add('show'));
+    setTimeout(() => {
+      t.classList.remove('show');
+      setTimeout(() => document.body.removeChild(t), 300);
+    }, duration);
+  }
 
-    function changeType(type, btn) {
-      currentType = type;
-      document.querySelectorAll('.category-btns button').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      loadData();
-    }
+  function changeType(type, btn) {
+    currentType = type;
+    document.querySelectorAll('.category-btns button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    loadData();
+  }
 
-    function changeMonth() {
-      currentMonth = document.getElementById('monthSelect').value;
-      loadData();
-    }
+  function changeMonth() {
+    currentMonth = document.getElementById('monthSelect').value;
+    loadData();
+  }
 
-    function formatValue(value) {
-      return (value === null || value === undefined) ? '未获取' : value;
-    }
+  function formatValue(value) {
+    return (value === null || value === undefined) ? '未获取' : value;
+  }
 
-    function renderStars(rating) {
-      if (rating == null) return '未获取';
-      const percent = Math.round((rating / 5) * 100);
-      return `
-        <div class="stars-outer">
-          ★★★★★
-          <div class="stars-inner" style="width: ${percent}%;">★★★★★</div>
-        </div>`;
-    }
+  function renderStars(rating) {
+    if (rating == null) return '未获取';
+    const percent = Math.round((rating / 5) * 100);
+    return `
+      <div class="stars-outer">
+        ★★★★★
+        <div class="stars-inner" style="width: ${percent}%;">★★★★★</div>
+      </div>`;
+  }
 
-    function exportCSV() {
-      const username = localStorage.getItem('username');
-      if (!username) { showToast('请先登录以导出数据'); return; }
-      const url = `/data/exportCarSalesCSV?type=${currentType}&month=${currentMonth}&user_name=${encodeURIComponent(username)}`;
-      window.open(url, '_blank');
-    }
+  function exportCSV() {
+    const username = localStorage.getItem('username');
+    if (!username) { showToast('请先登录以导出数据'); return; }
+    const url = `/data/exportCarSalesCSV?type=${currentType}&month=${currentMonth}&user_name=${encodeURIComponent(username)}`;
+    window.open(url, '_blank');
+  }
 
-    // 排序按钮高亮切换
-    function toggleSortButtons() {
-      document.getElementById('sort-hot').classList.toggle('active', COMMENT_SORT === 'hot');
-      document.getElementById('sort-time').classList.toggle('active', COMMENT_SORT === 'time');
-    }
+  // 排序按钮高亮切换
+  function toggleSortButtons() {
+    document.getElementById('sort-hot').classList.toggle('active', COMMENT_SORT === 'hot');
+    document.getElementById('sort-time').classList.toggle('active', COMMENT_SORT === 'time');
+  }
 
-    let CURRENT_TABLE, CURRENT_ID, CURRENT_CAR_NAME;
+  let CURRENT_TABLE, CURRENT_ID, CURRENT_CAR_NAME;
 
-    function loadData() {
-      fetch(`/data/getCarSalesByMonthAndType?type=${currentType}&month=${currentMonth}`)
-        .then(r => r.json())
-        .then(data => {
-          const tb = document.getElementById('carTableBody');
-          tb.innerHTML = '';
-          data.forEach(car => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td>No.${car.ranking}</td>
-              <td>${formatValue(car.car_name)}</td>
-              <td>${formatValue(car.sales)}</td>
-              <td>${renderStars(car.rating)}</td>
-              <td>${formatValue(car.price_range)}</td>`;
-            row.onclick = () => renderDetail(car);
-            tb.appendChild(row);
-          });
-          if (data.length) renderDetail(data[0]);
-        });
-    }
-
-    function renderDetail(car) {
-      document.getElementById('detail-content').innerHTML = `
-        <img src="${car.image_url}" alt="车型图片" />
-        <p><strong>车型：</strong>${car.car_name}</p>
-        <p><strong>销量：</strong>${car.sales}</p>
-        <p><strong>口碑评分：</strong>${car.rating} ${renderStars(car.rating)}</p>
-        <p><strong>价格区间：</strong>${car.price_range}</p>`;
-
-      CURRENT_TABLE = `${currentType === 'all' ? 'jiaoche' : currentType}_` + currentMonth.padStart(2, '0');
-      CURRENT_ID = car.id;
-      CURRENT_CAR_NAME = car.car_name;
-
-      loadComments();
-    }
-
-    function loadComments() {
-      fetch(`/api/comment/?car_name=${encodeURIComponent(CURRENT_CAR_NAME)}`)
-        .then(r => r.json())
-        .then(list => {
-          // 排序
-          if (COMMENT_SORT === 'hot') {
-            list.sort((a, b) => b.like_count - a.like_count);
-          } else {
-            list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-          }
-          const cont = document.getElementById('comment-list');
-          cont.innerHTML = list.map(c => `
-            <div class="comment-item">
-              <div class="comment-header">
-                <span class="comment-user">${c.usr_name}</span>
-                <span class="comment-time">${c.created_at}</span>
-              </div>
-              <div class="comment-content">${c.content}</div>
-              <div class="comment-footer">
-                <button class="like-btn ${c.liked?'liked':''}" onclick="toggleLike(${c.id}, this)">👍</button>
-                <span class="like-count">${c.like_count}</span>
-              </div>
-            </div>
-          `).join('');
-        })
-        .catch(err => console.error('加载评论出错', err));
-    }
-
-    function postComment() {
-      const txt = document.getElementById('comment-input').value.trim();
-      if (!txt) return showToast('请输入评论内容');
-      const user = localStorage.getItem('username');
-      if (!user) return showToast('请先登录');
-
-      fetch('/api/comment/', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ car_name: CURRENT_CAR_NAME, content: txt, usr_name: user })
-      })
-      .then(async res => {
-        const body = await res.json();
-        if (!res.ok) return showToast(body.error || `发布失败 ${res.status}`);
-        showToast('发送成功');
-        document.getElementById('comment-input').value = '';
-        loadComments();
-      })
-      .catch(() => showToast('网络错误'));
-    }
-
-    function toggleLike(cid, btn) {
-      const user = localStorage.getItem('username');
-      if (!user) return showToast('请先登录');
-
-      fetch('/api/comment/like', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ comment_id: cid, usr_name: user })
-      })
+  function loadData() {
+    fetch(`/data/getCarSalesByMonthAndType?type=${currentType}&month=${currentMonth}`)
       .then(r => r.json())
-      .then(json => {
-        btn.classList.toggle('liked', json.liked);
-        btn.nextElementSibling.textContent = json.like_count;
-      })
-      .catch(() => showToast('网络错误'));
-    }
+      .then(data => {
+        const tb = document.getElementById('carTableBody');
+        tb.innerHTML = '';
+        data.forEach(car => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>No.${car.ranking}</td>
+            <td>${formatValue(car.car_name)}</td>
+            <td>${formatValue(car.sales)}</td>
+            <td>${renderStars(car.rating)}</td>
+            <td>${formatValue(car.price_range)}</td>`;
+          row.onclick = () => renderDetail(car);
+          tb.appendChild(row);
+        });
+        if (data.length) renderDetail(data[0]);
+      });
+  }
 
-    window.onload = () => {
-      currentMonth = document.getElementById('monthSelect').value;
-      loadData();
-      document.getElementById('comment-post-btn').addEventListener('click', postComment);
-      document.getElementById('sort-hot').addEventListener('click', () => {
-        COMMENT_SORT = 'hot';
-        toggleSortButtons();
-        loadComments();
-      });
-      document.getElementById('sort-time').addEventListener('click', () => {
-        COMMENT_SORT = 'time';
-        toggleSortButtons();
-        loadComments();
-      });
+  function renderDetail(car) {
+    document.getElementById('detail-content').innerHTML = `
+      <img src="${car.image_url}" alt="车型图片" />
+      <p><strong>车型：</strong>${car.car_name}</p>
+      <p><strong>销量：</strong>${car.sales}</p>
+      <p><strong>口碑评分：</strong>${car.rating} ${renderStars(car.rating)}</p>
+      <p><strong>价格区间：</strong>${car.price_range}</p>`;
+
+    CURRENT_TABLE = `${currentType === 'all' ? 'jiaoche' : currentType}_` + currentMonth.padStart(2, '0');
+    CURRENT_ID = car.id;
+    CURRENT_CAR_NAME = car.car_name;
+
+    loadComments();
+  }
+
+  function loadComments() {
+    fetch(`/api/comment/?car_name=${encodeURIComponent(CURRENT_CAR_NAME)}`)
+      .then(r => r.json())
+      .then(list => {
+        // 排序
+        if (COMMENT_SORT === 'hot') {
+          list.sort((a, b) => b.like_count - a.like_count);
+        } else {
+          list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        }
+        const cont = document.getElementById('comment-list');
+        cont.innerHTML = list.map(c => `
+          <div class="comment-item">
+            <div class="comment-header">
+              <span class="comment-user">${c.usr_name}</span>
+              <span class="comment-time">${c.created_at}</span>
+            </div>
+            <div class="comment-content">${c.content}</div>
+            <div class="comment-footer">
+              <button class="like-btn ${c.liked?'liked':''}" onclick="toggleLike(${c.id}, this)">👍</button>
+              <span class="like-count">${c.like_count}</span>
+            </div>
+          </div>
+        `).join('');
+      })
+      .catch(err => console.error('加载评论出错', err));
+  }
+
+  function postComment() {
+    const txt = document.getElementById('comment-input').value.trim();
+    if (!txt) return showToast('请输入评论内容');
+    const user = localStorage.getItem('username');
+    if (!user) return showToast('请先登录');
+
+    fetch('/api/comment/', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ car_name: CURRENT_CAR_NAME, content: txt, usr_name: user })
+    })
+    .then(async res => {
+      const body = await res.json();
+      if (!res.ok) return showToast(body.error || `发布失败 ${res.status}`);
+      showToast('发送成功');
+      document.getElementById('comment-input').value = '';
+      loadComments();
+    })
+    .catch(() => showToast('网络错误'));
+  }
+
+  function toggleLike(cid, btn) {
+    const user = localStorage.getItem('username');
+    if (!user) return showToast('请先登录');
+
+    fetch('/api/comment/like', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ comment_id: cid, usr_name: user })
+    })
+    .then(r => r.json())
+    .then(json => {
+      btn.classList.toggle('liked', json.liked);
+      btn.nextElementSibling.textContent = json.like_count;
+    })
+    .catch(() => showToast('网络错误'));
+  }
+
+  window.onload = () => {
+    currentMonth = document.getElementById('monthSelect').value;
+    loadData();
+    document.getElementById('comment-post-btn').addEventListener('click', postComment);
+    document.getElementById('sort-hot').addEventListener('click', () => {
+      COMMENT_SORT = 'hot';
       toggleSortButtons();
-    };
-  </script>
+      loadComments();
+    });
+    document.getElementById('sort-time').addEventListener('click', () => {
+      COMMENT_SORT = 'time';
+      toggleSortButtons();
+      loadComments();
+    });
+    toggleSortButtons();
+  };
+</script>
+
+
 
 
 
