@@ -7,138 +7,82 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
   <title>各系汽车月销量排行榜</title>
   <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #121212;
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background-color: #121212; color: #fff; }
+    .container { display: flex; height: 100vh; overflow: hidden; }
+    .main { width: 70%; padding: 20px; overflow-y: auto; }
+    .detail { width: 30%; border-left: 2px solid #333; padding: 20px; position: sticky; top: 0; height: 100vh; overflow-y: auto; background-color: #121212; }
+    .filters { display: flex; align-items: center; margin-bottom: 10px; }
+    .category-btns button, .month-selector select { margin-right: 10px; padding: 6px 12px; border: none; border-radius: 5px; background-color: #444; color: #fff; cursor: pointer; }
+    .category-btns button.active { background-color: orange; color: black; }
+    .table-container { max-height: 75vh; overflow-y: auto; border-radius: 8px; background-color: #1a1a1a; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); }
+    table { width: 100%; border-collapse: collapse; border-spacing: 0; }
+    th, td { padding: 12px 16px; text-align: center; border: none; border-bottom: 1px solid #2a2a2a; }
+    thead th { background-color: #222; font-weight: 600; color: #ffcc00; position: sticky; top: 0; z-index: 1; }
+    tbody tr:hover { background-color: #2c2c2c; transition: background 0.2s ease; }
+    #detail-content img { max-width: 100%; max-height: 200px; margin-bottom: 10px; }
+    .stars-outer { display: inline-block; position: relative; font-size: 16px; color: #ccc; }
+    .stars-inner { position: absolute; top: 0; left: 0; white-space: nowrap; overflow: hidden; color: orange; }
+    .export-csv-btn { background: linear-gradient(135deg, #f39c12, #f1c40f); border: none; border-radius: 6px; color: #000; padding: 8px 16px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 8px rgba(255, 215, 0, 0.2); display: flex; align-items: center; gap: 8px; }
+    .export-csv-btn:hover { background: linear-gradient(135deg, #e67e22, #f39c12); transform: translateY(-1px); box-shadow: 0 6px 12px rgba(255, 165, 0, 0.3); }
+    /* 评论区 */
+    .comment-section { margin-top: 20px; padding: 15px; background-color: #1e1e1e; border-radius: 8px; color: #fff; font-size: 14px; }
+    .comment-title { margin-bottom: 12px; font-size: 16px; border-bottom: 1px solid #333; padding-bottom: 6px; }
+    #comment-list { max-height: 40vh; overflow-y: auto; }
+    .comment-item { padding: 10px 0; border-bottom: 1px solid #333; }
+    .comment-item:last-child { border-bottom: none; }
+    .comment-header { display: flex; justify-content: space-between; font-size: 13px; color: #bbb; margin-bottom: 6px; }
+    .comment-user { font-weight: bold; color: #fff; }
+    .comment-time { font-size: 12px; }
+    .comment-content { line-height: 1.5; margin-bottom: 8px; color: #ddd; }
+    .comment-footer { display: flex; align-items: center; }
+    .like-btn { background: none; border: none; cursor: pointer; font-size: 14px; margin-right: 4px; color: #bbb; }
+    .like-btn.liked { color: #ff5b26; }
+    .like-btn:hover { color: #ff5b26; }
+    .like-count { font-size: 13px; color: #bbb; }
+    .comment-input-box { margin-top: 15px; display: flex; flex-direction: column; }
+    #comment-input { width: 100%; resize: none; padding: 8px; border: 1px solid #333; border-radius: 4px; background-color: #161616; color: #eee; font-size: 14px; margin-bottom: 8px; }
+    #comment-post-btn { align-self: flex-end; padding: 6px 12px; background-color: #ff5b26; border: none; border-radius: 4px; color: #fff; cursor: pointer; }
+    #comment-post-btn:hover { background-color: #e14f1d; }
+    /* 放到现有 <style> 里 */
+    
+      .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.8);
       color: #fff;
-    }
-
-    .container {
-      display: flex;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    .main {
-      width: 70%;
-      padding: 20px;
-      overflow-y: auto;
-    }
-
-    .detail {
-      width: 30%;
-      border-left: 2px solid #333;
-      padding: 20px;
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      overflow-y: auto;
-      background-color: #121212;
-    }
-
-    .filters {
-      display: flex;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-
-    .category-btns button,
-    .month-selector select {
-      margin-right: 10px;
-      padding: 6px 12px;
-      border: none;
-      border-radius: 5px;
-      background-color: #444;
-      color: #fff;
-      cursor: pointer;
-    }
-
-    .category-btns button.active {
-      background-color: orange;
-      color: black;
-    }
-
-    .table-container {
-      max-height: 75vh;
-      overflow-y: auto;
-      border-radius: 8px;
-      background-color: #1a1a1a;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      border-spacing: 0;
-    }
-
-    th,
-    td {
-      padding: 12px 16px;
-      text-align: center;
-      border: none;
-      border-bottom: 1px solid #2a2a2a;
-    }
-
-    thead th {
-      background-color: #222;
-      font-weight: 600;
-      color: #ffcc00;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-
-    tbody tr:hover {
-      background-color: #2c2c2c;
-      transition: background 0.2s ease;
-    }
-
-
-    #carDetail img {
-      max-width: 100%;
-      max-height: 200px;
-      margin-bottom: 10px;
-    }
-
-    .stars-outer {
-      display: inline-block;
-      position: relative;
-      font-size: 16px;
-      color: #ccc;
-    }
-
-    .stars-inner {
-      position: absolute;
-      top: 0;
-      left: 0;
-      white-space: nowrap;
-      overflow: hidden;
-      color: orange;
-    }
-
-    .export-csv-btn {
-      background: linear-gradient(135deg, #f39c12, #f1c40f);
-      border: none;
-      border-radius: 6px;
-      color: #000;
       padding: 8px 16px;
+      border-radius: 4px;
       font-size: 14px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 8px rgba(255, 215, 0, 0.2);
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 9999;
+    }
+    .toast.show {
+      opacity: 1;
     }
 
-    .export-csv-btn:hover {
-      background: linear-gradient(135deg, #e67e22, #f39c12);
-      transform: translateY(-1px);
-      box-shadow: 0 6px 12px rgba(255, 165, 0, 0.3);
+    .comment-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
+    .sort-toggle button {
+      margin-left: 8px;
+      padding: 2px 8px;
+      border: none;
+      border-radius: 4px;
+      background: #333;
+      color: #bbb;
+      cursor: pointer;
+    }
+    .sort-toggle button.active {
+      background: orange;
+      color: #000;
+    }
+
+
   </style>
 </head>
 
@@ -163,22 +107,12 @@
             <option value="05">5月</option>
           </select>
         </div>
-        <!-- 导出按钮 -->
-        <button class="export-csv-btn" onclick="exportCSV()">
-          <i class="fas fa-download"></i> 导出 CSV
-        </button>
+        <button class="export-csv-btn" onclick="exportCSV()"><i class="fas fa-download"></i> 导出 CSV</button>
       </div>
-
       <div class="table-container">
         <table>
           <thead>
-            <tr>
-              <th>排名</th>
-              <th>车型</th>
-              <th>销量</th>
-              <th>口碑评分</th>
-              <th>价格区间</th>
-            </tr>
+            <tr><th>排名</th><th>车型</th><th>销量</th><th>口碑评分</th><th>价格区间</th></tr>
           </thead>
           <tbody id="carTableBody"></tbody>
         </table>
@@ -186,13 +120,44 @@
     </div>
 
     <div class="detail" id="carDetail">
-      <p>点击左侧车型查看详情</p>
+      <div id="detail-content">
+        <p>点击左侧车型查看详情</p>
+      </div>
+      <!-- 评论区开始 -->
+      <div id="comment-section" class="comment-section">
+        <div class="comment-header-bar">
+          <h4 class="comment-title">用户评论</h4>
+          <div class="sort-toggle">
+            <button id="sort-hot" class="active">热门</button>
+            <button id="sort-time">时间</button>
+          </div>
+        </div>
+        <div id="comment-list"></div>
+        <div class="comment-input-box">
+          <textarea id="comment-input" placeholder="说点什么吧…" rows="3"></textarea>
+          <button id="comment-post-btn">发表评论</button>
+        </div>
+      </div>
+      <!-- 评论区结束 -->
     </div>
   </div>
 
   <script>
     let currentType = 'all';
     let currentMonth = '01';
+    let COMMENT_SORT = 'hot'; // 'hot' 或 'time'
+
+    function showToast(msg, duration = 2000) {
+      const t = document.createElement('div');
+      t.className = 'toast';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      requestAnimationFrame(() => t.classList.add('show'));
+      setTimeout(() => {
+        t.classList.remove('show');
+        setTimeout(() => document.body.removeChild(t), 300);
+      }, duration);
+    }
 
     function changeType(type, btn) {
       currentType = type;
@@ -205,43 +170,13 @@
       currentMonth = document.getElementById('monthSelect').value;
       loadData();
     }
-    function formatValue(value) {
-      return value === null || value === undefined ? '未获取' : value;
-    }
-    function loadData() {
-      fetch(`/data/getCarSalesByMonthAndType?type=${currentType}&month=${currentMonth}`)
-        .then(res => res.json())
-        .then(data => {
-          const tbody = document.getElementById('carTableBody');
-          tbody.innerHTML = '';
-          data.forEach(car => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td>No.${car.ranking}</td>
-              <td>${formatValue(car.car_name)}</td>
-              <td>${formatValue(car.sales)}</td>
-              <td>${renderStars(car.rating)}</td>
-              <td>${formatValue(car.price_range)}</td>
-            `;
-            row.onclick = () => renderDetail(car);
-            tbody.appendChild(row);
-          });
-          if (data.length > 0) renderDetail(data[0]);
-        });
-    }
 
-    function renderDetail(car) {
-      document.getElementById('carDetail').innerHTML = `
-        <img src="${car.image_url}" alt="车型图片" />
-        <p><strong>车型：</strong>${car.car_name}</p>
-        <p><strong>销量：</strong>${car.sales}</p>
-        <p><strong>口碑评分：</strong>${car.rating} ${renderStars(car.rating)}</p>
-        <p><strong>价格区间：</strong>${car.price_range}</p>
-      `;
+    function formatValue(value) {
+      return (value === null || value === undefined) ? '未获取' : value;
     }
 
     function renderStars(rating) {
-      if (rating === null || rating === undefined) return '未获取';
+      if (rating == null) return '未获取';
       const percent = Math.round((rating / 5) * 100);
       return `
         <div class="stars-outer">
@@ -249,22 +184,144 @@
           <div class="stars-inner" style="width: ${percent}%;">★★★★★</div>
         </div>`;
     }
+
     function exportCSV() {
       const username = localStorage.getItem('username');
-      if (!username) {
-        alert('请先登录以导出数据');
-        return;
-      }
-
+      if (!username) { showToast('请先登录以导出数据'); return; }
       const url = `/data/exportCarSalesCSV?type=${currentType}&month=${currentMonth}&user_name=${encodeURIComponent(username)}`;
-      window.open(url, '_blank');  // 打开下载链接
+      window.open(url, '_blank');
+    }
+
+    // 排序按钮高亮切换
+    function toggleSortButtons() {
+      document.getElementById('sort-hot').classList.toggle('active', COMMENT_SORT === 'hot');
+      document.getElementById('sort-time').classList.toggle('active', COMMENT_SORT === 'time');
+    }
+
+    let CURRENT_TABLE, CURRENT_ID, CURRENT_CAR_NAME;
+
+    function loadData() {
+      fetch(`/data/getCarSalesByMonthAndType?type=${currentType}&month=${currentMonth}`)
+        .then(r => r.json())
+        .then(data => {
+          const tb = document.getElementById('carTableBody');
+          tb.innerHTML = '';
+          data.forEach(car => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>No.${car.ranking}</td>
+              <td>${formatValue(car.car_name)}</td>
+              <td>${formatValue(car.sales)}</td>
+              <td>${renderStars(car.rating)}</td>
+              <td>${formatValue(car.price_range)}</td>`;
+            row.onclick = () => renderDetail(car);
+            tb.appendChild(row);
+          });
+          if (data.length) renderDetail(data[0]);
+        });
+    }
+
+    function renderDetail(car) {
+      document.getElementById('detail-content').innerHTML = `
+        <img src="${car.image_url}" alt="车型图片" />
+        <p><strong>车型：</strong>${car.car_name}</p>
+        <p><strong>销量：</strong>${car.sales}</p>
+        <p><strong>口碑评分：</strong>${car.rating} ${renderStars(car.rating)}</p>
+        <p><strong>价格区间：</strong>${car.price_range}</p>`;
+
+      CURRENT_TABLE = `${currentType === 'all' ? 'jiaoche' : currentType}_` + currentMonth.padStart(2, '0');
+      CURRENT_ID = car.id;
+      CURRENT_CAR_NAME = car.car_name;
+
+      loadComments();
+    }
+
+    function loadComments() {
+      fetch(`/api/comment/?car_name=${encodeURIComponent(CURRENT_CAR_NAME)}`)
+        .then(r => r.json())
+        .then(list => {
+          // 排序
+          if (COMMENT_SORT === 'hot') {
+            list.sort((a, b) => b.like_count - a.like_count);
+          } else {
+            list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+          }
+          const cont = document.getElementById('comment-list');
+          cont.innerHTML = list.map(c => `
+            <div class="comment-item">
+              <div class="comment-header">
+                <span class="comment-user">${c.usr_name}</span>
+                <span class="comment-time">${c.created_at}</span>
+              </div>
+              <div class="comment-content">${c.content}</div>
+              <div class="comment-footer">
+                <button class="like-btn ${c.liked?'liked':''}" onclick="toggleLike(${c.id}, this)">👍</button>
+                <span class="like-count">${c.like_count}</span>
+              </div>
+            </div>
+          `).join('');
+        })
+        .catch(err => console.error('加载评论出错', err));
+    }
+
+    function postComment() {
+      const txt = document.getElementById('comment-input').value.trim();
+      if (!txt) return showToast('请输入评论内容');
+      const user = localStorage.getItem('username');
+      if (!user) return showToast('请先登录');
+
+      fetch('/api/comment/', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ car_name: CURRENT_CAR_NAME, content: txt, usr_name: user })
+      })
+      .then(async res => {
+        const body = await res.json();
+        if (!res.ok) return showToast(body.error || `发布失败 ${res.status}`);
+        showToast('发送成功');
+        document.getElementById('comment-input').value = '';
+        loadComments();
+      })
+      .catch(() => showToast('网络错误'));
+    }
+
+    function toggleLike(cid, btn) {
+      const user = localStorage.getItem('username');
+      if (!user) return showToast('请先登录');
+
+      fetch('/api/comment/like', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ comment_id: cid, usr_name: user })
+      })
+      .then(r => r.json())
+      .then(json => {
+        btn.classList.toggle('liked', json.liked);
+        btn.nextElementSibling.textContent = json.like_count;
+      })
+      .catch(() => showToast('网络错误'));
     }
 
     window.onload = () => {
       currentMonth = document.getElementById('monthSelect').value;
       loadData();
+      document.getElementById('comment-post-btn').addEventListener('click', postComment);
+      document.getElementById('sort-hot').addEventListener('click', () => {
+        COMMENT_SORT = 'hot';
+        toggleSortButtons();
+        loadComments();
+      });
+      document.getElementById('sort-time').addEventListener('click', () => {
+        COMMENT_SORT = 'time';
+        toggleSortButtons();
+        loadComments();
+      });
+      toggleSortButtons();
     };
   </script>
+
+
+
 </body>
 
 </html>
