@@ -194,14 +194,53 @@
         <div class="profile-name" id="profileName"></div>
 
         <div class="nav-tabs">
-            <div class="nav-tab active" onclick="switchTab('reviews')">发表的评价</div>
-            <div class="nav-tab" onclick="switchTab('downloads')">历史下载数据</div>
+            <!-- <div class="nav-tab active" onclick="switchTab('reviews')">发表的评价</div> -->
+            <div class="nav-tab active" onclick="switchTab('downloads')">历史下载数据</div>
             <div class="nav-tab" onclick="switchTab('password')">修改密码</div>
+            <div class="nav-tab" onclick="switchTab('car-recommend')">AI车型推荐</div>
         </div>
 
         <div class="tab-content active" id="reviews">
             <div class="content-box">
                 <p>暂无评价数据。</p>
+            </div>
+        </div>
+
+        <div class="tab-content" id="car-recommend">
+            <div class="content-box">
+                <h3 style="margin-top:0;">AI车型推荐助手</h3>
+                <p>请填写您的预算和需求，AI将为您推荐合适的车型</p>
+
+                <div style="margin:20px 0;">
+                    <label>预算范围（万元）:</label>
+                    <input type="range" id="budget" min="5" max="100" step="1" value="20"
+                        oninput="document.getElementById('budgetValue').innerText=this.value">
+                    <span id="budgetValue">20</span>万
+                </div>
+
+                <label>主要用途:</label>
+                <select id="purpose"
+                    style="width:100%;padding:10px;margin:10px 0;border-radius:6px;background:#555;color:#fff;border:none;">
+                    <option value="家庭日常使用">家庭日常使用</option>
+                    <option value="商务接待">商务接待</option>
+                    <option value="长途旅行">长途旅行</option>
+                    <option value="城市通勤">城市通勤</option>
+                    <option value="性能爱好">性能爱好</option>
+                </select>
+
+                <label>其他需求（可选）:</label>
+                <textarea id="requirements" rows="3"
+                    style="width:100%;padding:10px;margin:10px 0;border-radius:6px;background:#555;color:#fff;border:none;"></textarea>
+
+                <button onclick="getCarRecommendation()" style="margin-top:15px;">
+                    <i class="ri-ai-generate"></i> 获取AI推荐
+                </button>
+
+                <div id="recommendation-result"
+                    style="margin-top:20px;padding:15px;background:#444;border-radius:8px;display:none;">
+                    <h4 style="margin-top:0;">推荐结果</h4>
+                    <div id="recommendation-content"></div>
+                </div>
             </div>
         </div>
 

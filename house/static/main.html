@@ -185,6 +185,372 @@
             transform: translateY(-2px);
             box-shadow: 0 2px 8px rgba(102, 252, 241, 0.3);
         }
+
+        /* 新增AI助手样式 */
+        .ai-assistant-container {
+            position: relative;
+            margin: 20px auto;
+            width: 80px;
+            height: 80px;
+            cursor: pointer;
+        }
+
+        #ai-chatbot {
+            position: absolute;
+            width: 50px;
+            height: 30px;
+            border: 6px solid #66fcf1;
+            border-radius: 3rem;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        #ai-chatbot-corner {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            margin-left: -20px;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 12px solid #66fcf1;
+            transform: rotate(140deg);
+        }
+
+        #ai-antenna {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            height: 12px;
+            width: 6px;
+            background-color: #66fcf1;
+            transform: translateX(-50%);
+        }
+
+        #ai-beam {
+            position: absolute;
+            top: -10px;
+            left: -3px;
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            background-color: #66fcf1;
+            animation: beam-pulse 2s infinite;
+        }
+
+        .ai-dot {
+            position: absolute;
+            height: 10px;
+            width: 10px;
+            top: 50%;
+            background-color: #66fcf1;
+            border-radius: 50%;
+            transform: translateY(-50%);
+            animation: dot-pulse 2s infinite;
+        }
+
+        .ai-dot:nth-child(1) {
+            left: 10px;
+            animation-delay: 0.2s;
+        }
+
+        .ai-dot:nth-child(2) {
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .ai-dot:nth-child(3) {
+            right: 10px;
+            animation-delay: 0.4s;
+        }
+
+        @keyframes dot-pulse {
+
+            0%,
+            100% {
+                transform: translateY(-50%) scale(1);
+            }
+
+            50% {
+                transform: translateY(-50%) scale(1.2);
+            }
+        }
+
+        @keyframes beam-pulse {
+
+            0%,
+            100% {
+                opacity: 0.7;
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.1);
+            }
+        }
+
+        /* 侧边栏折叠时的AI助手样式 */
+        .sidebar.collapsed .ai-assistant-container {
+            width: 30px;
+            height: 30px;
+            margin: 20px auto 10px;
+        }
+
+        .sidebar.collapsed #ai-chatbot {
+            width: 20px;
+            height: 12px;
+            border-width: 3px;
+        }
+
+        .sidebar.collapsed #ai-chatbot-corner,
+        .sidebar.collapsed #ai-antenna,
+        .sidebar.collapsed #ai-beam,
+        .sidebar.collapsed .ai-dot {
+            display: none;
+        }
+
+        /* AI推荐对话框样式 */
+        .ai-recommendation-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            max-width: 90%;
+            background: #1f2833;
+            border: 2px solid #66fcf1;
+            border-radius: 10px;
+            z-index: 1000;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(102, 252, 241, 0.3);
+            max-height: 80vh;
+            /* 限制最大高度 */
+            /* overflow: hidden; */
+            /* 隐藏外部溢出 */
+            overflow-y: auto;
+        }
+
+        .ai-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            color: #66fcf1;
+        }
+
+        .ai-modal-close {
+            background: none;
+            border: none;
+            color: #66fcf1;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .ai-form-group {
+            margin-bottom: 15px;
+        }
+
+        .ai-form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #c5c6c7;
+        }
+
+        .ai-form-group input,
+        .ai-form-group select,
+        .ai-form-group textarea {
+            width: 100%;
+            padding: 8px;
+            background: #0b0c10;
+            border: 1px solid #66fcf1;
+            border-radius: 4px;
+            color: #fff;
+        }
+
+        .ai-submit-btn {
+            background: #66fcf1;
+            color: #0b0c10;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .ai-submit-btn:hover {
+            background: #45a29e;
+        }
+
+        .ai-result-container {
+            margin-top: 20px;
+            padding: 15px;
+            background: #0b0c10;
+            border-radius: 5px;
+            color: #c5c6c7;
+            display: none;
+        }
+
+        .ai-loading {
+            text-align: center;
+            padding: 0px;
+            color: #66fcf1;
+            display: none;
+        }
+
+        .ai-loading i {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* 修改模态框内容区域 - 移除滚动条 */
+        .ai-modal-content {
+            flex: 1;
+            overflow-y: visible;
+            /* 改为visible，不在外层加滚动 */
+            padding-right: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 自定义滚动条样式 */
+        .ai-modal-content::-webkit-scrollbar {
+            width: 8px;
+            background-color: #0b0c10;
+        }
+
+        .ai-modal-content::-webkit-scrollbar-thumb {
+            background-color: #66fcf1;
+            border-radius: 4px;
+        }
+
+        .ai-modal-content::-webkit-scrollbar-thumb:hover {
+            background-color: #45a29e;
+        }
+
+        /* 调整内部元素布局 */
+        .ai-form-container {
+            overflow-y: visible;
+            /* 不限制滚动 */
+            flex-shrink: 0;
+            /* 防止被压缩 */
+        }
+
+        .ai-result-container {
+            max-height: 300px;
+            /* 调高容器高度 */
+            overflow-y: auto;
+            /* 允许滚动 */
+            padding: 15px;
+            background: #0b0c10;
+            border-radius: 5px;
+            color: #c5c6c7;
+            white-space: normal;
+            /* 确保文本换行 */
+            word-wrap: break-word;
+            /* 长单词或URL换行 */
+        }
+
+        .ai-form-group label,
+        .ai-form-group span#ai-budget-value {
+            color: #c5c6c7;
+            /* 与界面其他文字相同的浅灰色 */
+        }
+
+        /* 滑块轨道样式 */
+        #ai-budget {
+            width: 100%;
+            height: 8px;
+            background: #0b0c10;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        /* 滑块拇指样式 */
+        #ai-budget::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #66fcf1;
+            /* 青色 */
+            cursor: pointer;
+            border: 2px solid #0b0c10;
+        }
+
+        #ai-budget::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #66fcf1;
+            cursor: pointer;
+            border: 2px solid #0b0c10;
+        }
+
+        /* 数值显示样式 */
+        #ai-budget-value {
+            display: inline-block;
+            min-width: 30px;
+            text-align: center;
+            font-weight: bold;
+            color: #66fcf1 !important;
+            /* 青色高亮显示数值 */
+            margin-left: 5px;
+        }
+
+        /* 修复推荐结果显示不全的问题 */
+        .ai-result-container {
+            max-height: 300px;
+            /* 调高容器高度 */
+            overflow-y: auto;
+            /* 允许滚动 */
+            padding: 15px;
+            background: #0b0c10;
+            border-radius: 5px;
+            color: #c5c6c7;
+            white-space: normal;
+            /* 确保文本换行 */
+            word-wrap: break-word;
+            /* 长单词或URL换行 */
+        }
+
+        /* 推荐结果条目样式 */
+        #ai-result-content ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        #ai-result-content li {
+            margin-bottom: 10px;
+            /* 增加条目间距 */
+            line-height: 1.5;
+            /* 提高行高 */
+        }
+
+        /* 确保模态框整体高度适应内容 */
+        .ai-recommendation-modal {
+            max-height: 90vh;
+            /* 增大模态框最大高度 */
+        }
+
+        .ai-modal-content {
+            overflow: visible;
+            /* 禁用外层滚动 */
+        }
     </style>
 </head>
 
@@ -213,17 +579,32 @@
             <li><a href="../static/6.html" class="nav-link" target="contentFrame">
                     <i class="ri-group-line"></i>不同类型汽车销量走势</a></li>
 
-            <li><a href="../static/7.html" class="nav-link" target="contentFrame">
-                    <i class="ri-truck-line"></i>MPV各车每月销量</a></li>
+            <!-- <li><a href="../static/7.html" class="nav-link" target="contentFrame">
+                    <i class="ri-truck-line"></i>MPV各车每月销量</a></li> -->
 
             <li><a href="../static/8.html" class="nav-link" target="contentFrame">
                     <i class="ri-medal-fill"></i>TOP品牌销量</a></li>
+            <!-- <li><a href="../static/9.html" class="nav-link" target="contentFrame">
+                    <i class="ri-chat-1-line"></i>用户评论</a></li> -->
         </ul>
+        <!-- 新增AI助手图标 -->
+        <div class="ai-assistant-container" id="aiAssistant">
+            <div id="ai-chatbot">
+                <div class="ai-dot"></div>
+                <div class="ai-dot"></div>
+                <div class="ai-dot"></div>
+            </div>
+            <div id="ai-chatbot-corner"></div>
+            <div id="ai-antenna">
+                <div id="ai-beam"></div>
+            </div>
+        </div>
+
         <div class="collapse-btn" id="collapseBtn"><i class="ri-arrow-left-s-line"></i></div>
     </aside>
 
     <div class="main-content">
-        <!-- 顶部按钮栏 -->
+        <!-- 顶部按钮栏保持不变... -->
         <div class="content-header">
             <div class="user-info">
                 <img id="userAvatar" class="user-avatar" alt="用户头像">
@@ -231,55 +612,63 @@
             </div>
 
             <div class="header-actions">
-                <a href="#" id="homeEntry" class="home-entry" title="返回主界面">
+                <a href="../static/home.html" id="homeEntry" class="home-entry" title="返回主界面">
                     <i class="ri-home-5-fill"></i> 主界面
                 </a>
             </div>
         </div>
-
         <iframe name="contentFrame" src="../static/1_1.html"></iframe>
         <div class="footer">© 2025 数据分析平台 | 版本 1.0</div>
     </div>
 
-    <script>
-        // 获取用户信息
-        const username = localStorage.getItem('username');
-        const avatarIndex = localStorage.getItem('avatarIndex') || '1'; // 默认为1
+    <!-- AI推荐对话框 -->
+    <div class="ai-recommendation-modal" id="aiModal">
+        <div class="ai-modal-header">
+            <h3>AI汽车推荐助手</h3>
+            <button class="ai-modal-close" id="aiModalClose">&times;</button>
+        </div>
 
-        // 显示用户信息
-        document.getElementById('usernameDisplay').textContent = username || '访客';
-        document.getElementById('userAvatar').src = `../static/img/${avatarIndex}.jpg`;
+        <div class="ai-modal-content">
+            <div class="ai-form-container">
+                <div class="ai-form-group">
+                    <div class="ai-form-group">
+                        <label for="ai-budget">预算范围：<span id="ai-budget-value">20</span> 万元</label>
+                        <input type="range" id="ai-budget" min="5" max="100" step="1" value="20"
+                            oninput="document.getElementById('ai-budget-value').innerText=this.value">
+                    </div>
+                </div>
 
-        // 导航菜单激活状态
-        const links = document.querySelectorAll('.nav-link');
-        links.forEach(link => {
-            link.addEventListener('click', function () {
-                links.forEach(l => l.classList.remove('active'));
-                this.classList.add('active');
-            });
-        });
+                <div class="ai-form-group">
+                    <label for="ai-purpose">主要用途</label>
+                    <select id="ai-purpose">
+                        <option value="家庭日常使用">家庭日常使用</option>
+                        <option value="商务接待">商务接待</option>
+                        <option value="长途旅行">长途旅行</option>
+                        <option value="城市通勤">城市通勤</option>
+                        <option value="性能爱好">性能爱好</option>
+                    </select>
+                </div>
 
-        // 设置主界面入口的链接
-        document.getElementById('homeEntry').addEventListener('click', function (e) {
-            e.preventDefault();
-            window.location.href = `../static/home.html`;
-        });
+                <div class="ai-form-group">
+                    <label for="ai-requirements">其他需求（可选）</label>
+                    <textarea id="ai-requirements" rows="3" placeholder="例如：省油、空间大、新能源等"></textarea>
+                </div>
 
-        // 侧边栏折叠功能
-        const sidebar = document.getElementById('sidebar');
-        const collapseBtn = document.getElementById('collapseBtn');
+                <button class="ai-submit-btn" id="aiSubmit">获取推荐</button>
 
-        collapseBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('collapsed');
-            updateIcon();
-        });
+                <div class="ai-loading" id="aiLoading">
+                    <i class="ri-loader-4-line"></i> AI正在思考...
+                </div>
+            </div>
 
-        function updateIcon() {
-            const icon = collapseBtn.querySelector('i');
-            icon.className = sidebar.classList.contains('collapsed')
-                ? 'ri-arrow-right-s-line'
-                : 'ri-arrow-left-s-line';
-        }
+            <div class="ai-result-container" id="aiResult">
+                <h4>推荐结果</h4>
+                <div id="ai-result-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../static/main/main.js">
     </script>
 
 </body>
