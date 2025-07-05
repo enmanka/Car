@@ -266,6 +266,7 @@ def get_all_car_sales():
 def getCarSales_All():
     # 从数据库（CarSales表）获取所有数据
     all_car_sales = CarSales.query.all()
+    count = request.args.get('count', type=int, default=15)
 
     # 用于存储按 car_name 汇总的销售数据
     car_sales_summary = {}
@@ -285,7 +286,8 @@ def getCarSales_All():
     result.sort(key=lambda x: x["total_sales"], reverse=True)
 
     # 仅取前十个数据
-    result = result[:15]
+    # result = result[:15]
+    result = result[:count]
 
     # 把数据打包成 JSON 并返回
     return jsonify(result)
@@ -581,3 +583,4 @@ def get_company_amont():
     [build_view_data(item) for item in data]
 
     return json.dumps(view_data, ensure_ascii=False)
+
