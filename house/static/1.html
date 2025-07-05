@@ -1,596 +1,518 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-
+<html lang="zh">
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport"
-        content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
-    <title>大数据分析平台</title>
-    <link href="/static/css/bootstrap.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/base.css">
-    <link rel="stylesheet" href="/static/css/index.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <meta charset="UTF-8" />
+  <title>懂车之家销量大数据可视化平台</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      height: 100%;
+      background: linear-gradient(to right, #0f1c2e, #152a45);
+      font-family: 'Segoe UI', sans-serif;
+      color: #ffffff;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    .dashboard {
+      display: flex;
+      flex: 1 1 auto;
+      padding: 10px;
+      gap: 10px;
+      /* 让三列撑满高度 */
+      height: 100%;
+      min-height: 0; /* 让子flex子元素高度正确 */
+    }
 
-    <style>
-        /* 全局设置 */
-        html,
-        body {
-            width: 100%;
-            margin: 0;
-            padding: 0;
-            overflow-x: hidden;
-            /* 禁止横向滚动 */
-            overflow-y: auto;
-            /* 允许纵向滚动 */
-            min-width: 1200px;
-            /* 设置最小宽度 */
-        }
+    /* 三列基础样式 */
+    .left-col, .middle-col, .right-col {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      height: 100%;
+      min-height: 0; /* 关键，防止溢出 */
+    }
 
-        /* 主容器 */
-        .data_content {
-            width: 100%;
-            padding: 0 15px;
-            box-sizing: border-box;
-        }
+    /* 左列宽度和面板比例 */
+    .left-col {
+      width: 25%;
+    }
+    .left-col .panel {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(to bottom right, #0f3a5a, #0e585b);
+      border-radius: 12px;
+      padding: 5px;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+    }
+    .left-col .panel:first-child { flex: 5; } /* 50% */
+    .left-col .panel:last-child  { flex: 5; } /* 50% */
 
-        /* 主区域 - Flex布局 */
-        .data_main {
-            display: flex;
-            flex-wrap: nowrap;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
+    /* 中列宽度和面板比例 */
+    .middle-col {
+      width: 50%;
+    }
+    .middle-col {
+      display: flex;
+      flex-direction: column;
+    }
+    .middle-col .panel {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(to bottom right, #0f3a5a, #0e585b);
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+    }
 
-        /* 左右侧边栏 */
-        .main_left,
-        .main_right {
-            flex: 0 0 23%;
-            /* 固定23%宽度 */
-            min-width: 0;
-            /* 防止内容溢出 */
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
+    /* 右列宽度和面板比例 */
+    .right-col {
+      width: 25%;
+      display: flex;
+      flex-direction: column;
+    }
+    .right-col .panel {
+      flex: 1; /* 单个面板撑满所有高度 */
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(to bottom right, #0f3a5a, #0e585b);
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+      overflow: hidden;
+    }
 
-        /* 中间主内容区 */
-        .main_center {
-            flex: 1;
-            /* 剩余空间 */
-            min-width: 0;
-        }
+    /* 统一面板标题 */
+    .panel h3 {
+      margin: 0 0 10px;
+      font-size: 18px;
+      color: #66ccff;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding-bottom: 5px;
+      flex-shrink: 0;
+    }
 
-        /* 底部区域 */
-        .data_bottom {
-            display: flex;
-            flex-wrap: nowrap;
-            gap: 15px;
-            margin-top: 20px;
-        }
+    /* 面板内容撑满剩余空间 */
+    .panel-content {
+      flex: 1;
+      position: relative;
+      height: 100%;
+      min-height: 0;
+      overflow: auto;
+    }
 
-        /* 底部左右侧边栏 */
-        .bottom_1,
-        .bottom_4 {
-            flex: 0 0 23%;
-            min-width: 0;
-        }
+    /* 排行榜表格 */
+    #salesTable {
+      border-collapse: separate;
+      border-spacing: 2px 6px;
+      width: 100%;
+      table-layout: fixed;
+      color: #fff;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    #salesTable tr {
+      position: relative;
+      height: 40px;
+      background: transparent;
+      cursor: pointer;
+    }
+    #salesTable tr .row-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      border-radius: 8px;
+      background: linear-gradient(90deg, rgba(102,252,241,0.4), rgba(102,252,241,0.15));
+      z-index: 0;
+      pointer-events: none;
+      box-shadow: 0 0 8px rgba(102,252,241,0.6);
+    }
+    #salesTable tr:hover .row-bar {
+      background: linear-gradient(90deg, rgba(102,252,241,0.7), rgba(102,252,241,0.3));
+      box-shadow: 0 0 12px rgba(102,252,241,0.9);
+    }
+    #salesTable tr td {
+      position: relative;
+      z-index: 1;
+      padding-left: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow: 0 0 3px rgba(0,0,0,0.6);
+    }
+    /* 奖牌颜色 */
+    .gold-medal { color: gold; font-weight: bold; }
+    .silver-medal { color: silver; font-weight: bold; }
+    .bronze-medal { color: #cd7f32; font-weight: bold; }
 
-        /* 底部中间区域 */
-        .bottom_center {
-            flex: 1;
-            display: flex;
-            gap: 15px;
-        }
-
-        /* 底部中间的两个子区域 */
-        .bottom_2,
-        .bottom_3 {
-            flex: 1;
-            min-width: 0;
-        }
-
-        /* 图表容器 */
-        .chart,
-        .echart {
-            width: 100% !important;
-            height: auto;
-            min-height: 200px;
-        }
-
-        /* 特殊高度的图表 */
-        #chart_map {
-            height: 610px !important;
-        }
-
-        /* 清除浮动影响 */
-        .fl,
-        .fr {
-            float: none;
-        }
-
-        /* 标题样式 */
-        .main_title {
-            display: flex;
-            align-items: center;
-            padding: 10px 0;
-        }
-
-        /* 响应式调整 */
-        @media (max-width: 1400px) {
-
-            .main_left,
-            .main_right,
-            .bottom_1,
-            .bottom_4 {
-                flex: 0 0 25%;
-            }
-        }
-    </style>
+    /* 词云容器 */
+    #canvasContainer, #carCanvas {
+      width: 100%; height: 100%; position: relative; background: transparent;
+    }
+    #tooltip {
+      position: absolute; 
+      background: rgba(0,0,0,0.8); 
+      padding: 10px 15px; 
+      border-radius: 5px;
+      pointer-events: none; 
+      opacity: 0; 
+      transition: opacity 0.3s; 
+      font-size: 14px;
+      z-index: 100; 
+      color: #ffcc00;
+    }
+    #tooltip.show { opacity: 1; }
+    ul#carTags { display: none; }
+    
+    /* 轮播图样式 */
+    #carouselChina, #carouselChina .carousel-inner, #carouselChina .carousel-inner .item {
+      height: 400px;
+    }
+    #carouselChina .carousel-inner .item img {
+      width: 100%; height: 100%; object-fit: cover;
+    }
+    #carouselChina .carousel-control {
+      position: absolute; 
+      top: 50%; 
+      transform: translateY(-50%); 
+      width: 60px; 
+      height: 60px;
+      background: rgba(0,0,0,0.3); 
+      border-radius: 30px; 
+      display: flex; 
+      align-items: center;
+      justify-content: center; 
+      opacity: 0.7; 
+      cursor: pointer; 
+      z-index: 10;
+    }
+    #carouselChina .left.carousel-control  { left: 10px; }
+    #carouselChina .right.carousel-control { right: 10px; }
+    #carouselChina .carousel-control .fas {
+      font-size: 24px; color: #fff;
+    }
+    #carouselChina .carousel-control:hover { 
+      opacity: 1; 
+      background: rgba(0,0,0,0.5); 
+    }
+  </style>
 </head>
-
 <body>
-
-    <!--header-->
-    <div class="header">
-        <div class="bg_header">
-            <div class="header_nav t_title">
-                城建住房大数据分析
-            </div>
-        </div>
-    </div>
-
-    <!--main-->
-    <div class="data_content">
-        <div class="data_main">
-            <div class="main_left">
-                <div class="left_1 t_btn6" style="cursor: pointer;">
-                    <!--左上边框-->
-                    <div class="t_line_box">
-                        <i class="t_l_line"></i>
-                        <i class="l_t_line"></i>
-                    </div>
-                    <!--右上边框-->
-                    <div class="t_line_box">
-                        <i class="t_r_line"></i>
-                        <i class="r_t_line"></i>
-                    </div>
-                    <!--左下边框-->
-                    <div class="t_line_box">
-                        <i class="l_b_line"></i>
-                        <i class="b_l_line"></i>
-                    </div>
-                    <!--右下边框-->
-                    <div class="t_line_box">
-                        <i class="r_b_line"></i>
-                        <i class="b_r_line"></i>
-                    </div>
-
-                    <div class="main_title">
-                        <img src="/static/img/t_1.png" alt="">
-                        各月份销量排名
-                    </div>
-                    <!-- 月份选择器 -->
-                    <div class="month-selector" style="margin: 10px 15px; display: flex; align-items: center;">
-                        <label style="color: #fff; margin-right: 10px;">选择月份：</label>
-                        <select id="month-select"
-                            style="padding: 5px; background: rgba(255,255,255,0.8); border-radius: 4px;">
-                            <option value="01">1月</option>
-                            <option value="02">2月</option>
-                            <option value="03">3月</option>
-                        </select>
-                    </div>
-                    <div id="car_sales" class="chart" style="width:100%;height: 280px;"></div>
-                </div>
-                <div class="left_2" style="cursor: pointer;">
-                    <!--边框元素-->
-                    <div class="t_line_box">
-                        <i class="t_l_line"></i>
-                        <i class="l_t_line"></i>
-                    </div>
-                    <div class="t_line_box">
-                        <i class="t_r_line"></i>
-                        <i class="r_t_line"></i>
-                    </div>
-                    <div class="t_line_box">
-                        <i class="l_b_line"></i>
-                        <i class="b_l_line"></i>
-                    </div>
-                    <div class="t_line_box">
-                        <i class="r_b_line"></i>
-                        <i class="b_r_line"></i>
-                    </div>
-                    <div class="main_title">
-                        <img src="/static/img/t_2.png" alt="">
-                        租房数量
-                    </div>
-                    <div id="chart_2" class="chart t_btn9" style="width:100%;height: 280px;"></div>
-                </div>
-            </div>
-<div class="main_center">
-  <div class="center_text">
-    <!-- 只对本轮播生效的自适应样式 -->
-    <style>
-      /* 轮播及项目撑满容器 */
-      #carouselChina,
-      #carouselChina .carousel-inner,
-      #carouselChina .carousel-inner .item {
-        height: 100%;
-      }
-      /* 图片拉伸填充，不保留比例 */
-      #carouselChina .carousel-inner .item img {
-        width: 100%;
-        height: 100%;
-        object-fit: fill;
-      }
-      /* 调整左右箭头有效点击框大小，并居中图标 */
-      #carouselChina .carousel-control {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 60px;          /* 点击框宽度 */
-        height: 60px;         /* 点击框高度 */
-        background: rgba(0,0,0,0.3);
-        border-radius: 30px;  /* 圆形点击区 */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0.7;
-      }
-      /* 左箭头靠左，右箭头靠右 */
-      #carouselChina .left.carousel-control  { left: 10px; }
-      #carouselChina .right.carousel-control { right: 10px; }
-      /* Icon 样式 */
-      #carouselChina .carousel-control .fas {
-        font-size: 24px;
-        color: #fff;
-      }
-      /* Hover 效果 */
-      #carouselChina .carousel-control:hover {
-        opacity: 1;
-        background: rgba(0,0,0,0.5);
-      }
-    </style>
-
-    <div id="carouselChina" class="carousel slide" data-ride="carousel" data-interval="3500">
-      <!-- 轮播指示点 -->
-      <ol class="carousel-indicators">
-        <li data-target="#carouselChina" data-slide-to="0" class="active"></li>
-        <li data-target="#carouselChina" data-slide-to="1"></li>
-        <li data-target="#carouselChina" data-slide-to="2"></li>
-        <li data-target="#carouselChina" data-slide-to="3"></li>
-      </ol>
-      <!-- 轮播项目 -->
-      <div class="carousel-inner" role="listbox">
-        <div class="item active">
-          <a href="https://www.audi.cn/zh.html" target="_blank">
-            <img src="/static/img/ad1.png" alt="广告1">
-          </a>
-        </div>
-        <div class="item">
-          <a href="https://www.xiaomiev.com/" target="_blank">
-            <img src="/static/img/ad2.png" alt="广告2">
-          </a>
-        </div>
-        <div class="item">
-          <a href="https://www.mercedes-benz.com.cn/" target="_blank">
-            <img src="/static/img/ad3.png" alt="广告3">
-          </a>
-        </div>
-        <div class="item">
-          <a href="https://hima.auto/wenjie/" target="_blank">
-            <img src="/static/img/ad4.png" alt="广告4">
-          </a>
+  <div class="dashboard">
+    <!-- 左列 -->
+    <div class="left-col">
+      <div class="panel">
+        <h3><i class="fas fa-cloud"></i> 热词词云图</h3>
+        <div class="panel-content" id="canvasContainer">
+          <canvas width="800" height="600" id="carCanvas">你的浏览器不支持HTML5 Canvas</canvas>
+          <div id="tooltip"></div>
+          <ul id="carTags"></ul>
         </div>
       </div>
-      <!-- 控制按钮（使用 Font Awesome） -->
-      <a class="left carousel-control" href="#carouselChina" role="button" data-slide="prev">
-        <i class="fas fa-chevron-left fa-2x" aria-hidden="true"></i>
-        <span class="sr-only">上一张</span>
-      </a>
-      <a class="right carousel-control" href="#carouselChina" role="button" data-slide="next">
-        <i class="fas fa-chevron-right fa-2x" aria-hidden="true"></i>
-        <span class="sr-only">下一张</span>
-      </a>
+      <div class="panel">
+        <h3><i class="fas fa-line-chart"></i> MPV TOP5销量走势</h3>
+        <div class="panel-content" id="lineChart" style="width:100%; height:100%;"></div>
+      </div>
+    </div>
+
+    <!-- 中列 -->
+    <div class="middle-col">
+      <div class="panel">
+        <h3><i class="fas fa-images"></i> 热门车型展示</h3>
+        <div class="panel-content">
+          <div id="carouselChina" class="carousel slide" data-ride="carousel" data-interval="3500">
+            <ol class="carousel-indicators">
+              <li data-target="#carouselChina" data-slide-to="0" class="active"></li>
+              <li data-target="#carouselChina" data-slide-to="1"></li>
+              <li data-target="#carouselChina" data-slide-to="2"></li>
+              <li data-target="#carouselChina" data-slide-to="3"></li>
+            </ol>
+            <div class="carousel-inner" role="listbox">
+              <div class="item active">
+                <a href="https://www.audi.cn/zh.html" target="_blank">
+                  <img src="/static/img/ad1.png" alt="奥迪车型" />
+                </a>
+              </div>
+              <div class="item">
+                <a href="https://www.xiaomiev.com/" target="_blank">
+                  <img src="/static/img/ad2.png" alt="小米汽车" />
+                </a>
+              </div>
+              <div class="item">
+                <a href="https://www.mercedes-benz.com.cn/" target="_blank">
+                  <img src="/static/img/ad3.png" alt="奔驰车型" />
+                </a>
+              </div>
+              <div class="item">
+                <a href="https://hima.auto/wenjie/" target="_blank">
+                  <img src="/static/img/ad4.png" alt="问界汽车" />
+                </a>
+              </div>
+            </div>
+            <a class="left carousel-control" href="#carouselChina" role="button" data-slide="prev">
+              <i class="fas fa-chevron-left fa-2x" aria-hidden="true"></i>
+              <span class="sr-only">上一张</span>
+            </a>
+            <a class="right carousel-control" href="#carouselChina" role="button" data-slide="next">
+              <i class="fas fa-chevron-right fa-2x" aria-hidden="true"></i>
+              <span class="sr-only">下一张</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右列 -->
+    <div class="right-col">
+      <div class="panel" onclick="goToMonthlySales()" style="cursor: pointer;">
+        <h3><i class="fas fa-trophy"></i> 5月销量排行榜</h3>
+        <div class="panel-content" style="overflow-y: auto;">
+          <table id="salesTable">
+            <thead>
+              <tr><th>排名</th><th>车型</th><th>销量</th></tr>
+            </thead>
+            <tbody id="salesTableBody"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
-</div>
-            <div class="main_right">
-                <div class="right_1">
-                    <!--边框元素-->
-                    <div class="t_line_box">
-                        <i class="t_l_line"></i>
-                        <i class="l_t_line"></i>
-                    </div>
-                    <div class="t_line_box">
-                        <i class="t_r_line"></i>
-                        <i class="r_t_line"></i>
-                    </div>
-                    <div class="t_line_box">
-                        <i class="l_b_line"></i>
-                        <i class="b_l_line"></i>
-                    </div>
-                    <div class="t_line_box">
-                        <i class="r_b_line"></i>
-                        <i class="b_r_line"></i>
-                    </div>
-                    <div class="main_title">
-                        <img src="/static/img/t_4.png" alt="">
-                        租/售房价对比
-                    </div>
-                    <div id="chart_3" class="echart t_btn7" style="width:100%;height: 280px;"></div>
-                </div>
-                <div class="right_2">
-                    <!--边框元素-->
-                    <div class="t_line_box">
-                        <i class="t_l_line"></i>
-                        <i class="l_t_line"></i>
-                    </div>
-                    <div class="t_line_box">
-                        <i class="t_r_line"></i>
-                        <i class="r_t_line"></i>
-                    </div>
-                    <div class="t_line_box">
-                        <i class="l_b_line"></i>
-                        <i class="b_l_line"></i>
-                    </div>
-                    <div class="t_line_box">
-                        <i class="r_b_line"></i>
-                        <i class="b_r_line"></i>
-                    </div>
-                    <div class="main_title">
-                        <img src="/static/img/t_5.png" alt="">
-                        售房数量
-                    </div>
-                    <div id="chart_4" class="echart t_btn4" style="width:100%;height: 280px;cursor: pointer;"></div>
-                </div>
-            </div>
-        </div>
 
-        <!-- 第一行底部内容 -->
-        <div class="data_bottom">
-            <div class="bottom_1 t_btn5" style="cursor: pointer;">
-                <!--边框元素-->
-                <div class="t_line_box">
-                    <i class="t_l_line"></i>
-                    <i class="l_t_line"></i>
-                </div>
-                <div class="t_line_box">
-                    <i class="t_r_line"></i>
-                    <i class="r_t_line"></i>
-                </div>
-                <div class="t_line_box">
-                    <i class="l_b_line"></i>
-                    <i class="b_l_line"></i>
-                </div>
-                <div class="t_line_box">
-                    <i class="r_b_line"></i>
-                    <i class="b_r_line"></i>
-                </div>
-                <div class="main_title">
-                    <img src="/static/img/t_6.png" alt="">
-                    经济活跃城市
-                </div>
-                <div id="chart_5" class="echart" style="width:100%;height: 250px;margin-top: 15px;padding-left: 15%;">
-                    <canvas height="244" id="cloudCanvas"></canvas>
-                </div>
-                <div id="tags2">
-                    <ul id="regBusiness">
-                        <li></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="bottom_center">
-                <div class="bottom_2">
-                    <!--边框元素-->
-                    <div class="t_line_box">
-                        <i class="t_l_line"></i>
-                        <i class="l_t_line"></i>
-                    </div>
-                    <div class="t_line_box">
-                        <i class="t_r_line"></i>
-                        <i class="r_t_line"></i>
-                    </div>
-                    <div class="t_line_box">
-                        <i class="l_b_line"></i>
-                        <i class="b_l_line"></i>
-                    </div>
-                    <div class="t_line_box">
-                        <i class="r_b_line"></i>
-                        <i class="b_r_line"></i>
-                    </div>
-                    <div class="main_title">
-                        <img src="/static/img/t_7.png" alt="">
-                        在征收项目数
-                    </div>
-                    <div id="chart_10" class="main_table t_btn8" style="width:100%;height: 250px"></div>
-                </div>
-                <div class="bottom_3">
-                    <!--边框元素-->
-                    <div class="t_line_box">
-                        <i class="t_l_line"></i>
-                        <i class="l_t_line"></i>
-                    </div>
-                    <div class="t_line_box">
-                        <i class="t_r_line"></i>
-                        <i class="r_t_line"></i>
-                    </div>
-                    <div class="t_line_box">
-                        <i class="l_b_line"></i>
-                        <i class="b_l_line"></i>
-                    </div>
-                    <div class="t_line_box">
-                        <i class="r_b_line"></i>
-                        <i class="b_r_line"></i>
-                    </div>
-                    <div class="main_title">
-                        <img src="/static/img/t_7.png" alt="">
-                        商品房上市趋势
-                    </div>
-                    <div id="chart_11" class="main_table t_btn8" style="width:100%;height: 250px"></div>
-                </div>
-            </div>
-            <div class="bottom_4">
-                <!--边框元素-->
-                <div class="t_line_box">
-                    <i class="t_l_line"></i>
-                    <i class="l_t_line"></i>
-                </div>
-                <div class="t_line_box">
-                    <i class="t_r_line"></i>
-                    <i class="r_t_line"></i>
-                </div>
-                <div class="t_line_box">
-                    <i class="l_b_line"></i>
-                    <i class="b_l_line"></i>
-                </div>
-                <div class="t_line_box">
-                    <i class="r_b_line"></i>
-                    <i class="b_r_line"></i>
-                </div>
-                <div class="main_title">
-                    <img src="/static/img/t_7.png" alt="">
-                    公租房面积/数量
-                </div>
-                <div id="chart_12" class="main_table t_btn8" style="width:100%;height: 250px"></div>
-            </div>
-        </div>
+  <!-- 依赖库 -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud@2.0.0/dist/echarts-wordcloud.min.js"></script>
+  <script src="https://www.goat1000.com/tagcanvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js"></script>
 
-        <!-- 第二行底部内容 -->
-        <div class="data_bottom" style="margin-top: 40px;">
-            <div class="bottom_1 t_btn5" style="cursor: pointer;">
-                <!--边框元素-->
-                <div class="t_line_box">
-                    <i class="t_l_line"></i>
-                    <i class="l_t_line"></i>
-                </div>
-                <div class="t_line_box">
-                    <i class="t_r_line"></i>
-                    <i class="r_t_line"></i>
-                </div>
-                <div class="t_line_box">
-                    <i class="l_b_line"></i>
-                    <i class="b_l_line"></i>
-                </div>
-                <div class="t_line_box">
-                    <i class="r_b_line"></i>
-                    <i class="b_r_line"></i>
-                </div>
-                <div class="main_title">
-                    <img src="/static/img/t_6.png" alt="">
-                    最具信用企业前十
-                </div>
-                <div id="chart_13" class="main_table t_btn8" style="width:100%;height: 250px"></div>
-            </div>
-            <div class="bottom_center">
-                <div class="bottom_2">
-                    <!--边框元素-->
-                    <div class="t_line_box">
-                        <i class="t_l_line"></i>
-                        <i class="l_t_line"></i>
-                    </div>
-                    <div class="t_line_box">
-                        <i class="t_r_line"></i>
-                        <i class="r_t_line"></i>
-                    </div>
-                    <div class="t_line_box">
-                        <i class="l_b_line"></i>
-                        <i class="b_l_line"></i>
-                    </div>
-                    <div class="t_line_box">
-                        <i class="r_b_line"></i>
-                        <i class="b_r_line"></i>
-                    </div>
-                    <div class="main_title">
-                        <img src="/static/img/t_7.png" alt="">
-                        最差信用企业前十
-                    </div>
-                    <div id="chart_14" class="main_table t_btn8" style="width:100%;height: 250px"></div>
-                </div>
-                <div class="bottom_3">
-                    <!--边框元素-->
-                    <div class="t_line_box">
-                        <i class="t_l_line"></i>
-                        <i class="l_t_line"></i>
-                    </div>
-                    <div class="t_line_box">
-                        <i class="t_r_line"></i>
-                        <i class="r_t_line"></i>
-                    </div>
-                    <div class="t_line_box">
-                        <i class="l_b_line"></i>
-                        <i class="b_l_line"></i>
-                    </div>
-                    <div class="t_line_box">
-                        <i class="r_b_line"></i>
-                        <i class="b_r_line"></i>
-                    </div>
-                    <div class="main_title">
-                        <img src="/static/img/t_7.png" alt="">
-                        银行资金持有趋势
-                    </div>
-                    <div id="chart_15" class="main_table t_btn8" style="width:100%;height: 250px"></div>
-                </div>
-            </div>
-            <div class="bottom_4">
-                <!--边框元素-->
-                <div class="t_line_box">
-                    <i class="t_l_line"></i>
-                    <i class="l_t_line"></i>
-                </div>
-                <div class="t_line_box">
-                    <i class="t_r_line"></i>
-                    <i class="r_t_line"></i>
-                </div>
-                <div class="t_line_box">
-                    <i class="l_b_line"></i>
-                    <i class="b_l_line"></i>
-                </div>
-                <div class="t_line_box">
-                    <i class="r_b_line"></i>
-                    <i class="b_r_line"></i>
-                </div>
-                <div class="main_title">
-                    <img src="/static/img/t_7.png" alt="">
-                    银行资金保有量
-                </div>
-                <div id="chart_16" class="main_table t_btn8" style="width:100%;height: 250px"></div>
-            </div>
-        </div>
-    </div>
+  <script>
+    function goToMonthlySales() {
+      window.parent.frames['contentFrame'].location.href = '../static/4.html';
+    }
 
-    <!-- 脚本部分保持不变 -->
-    <script src="/static/js/jquery-2.2.1.min.js"></script>
-    <script src="/static/js/bootstrap.min.js"></script>
-    <script src="/static/js/common.js"></script>
-    <script src="/static/js/echarts.min.js"></script>
-    <script src="/static/js/dataTool.js"></script>
-    <script src="/static/js/china.js"></script>
-    <script src="/static/js/tagcanvas.min.js"></script>
-    <script src="/static/js/area.js"></script>
-    <script src="/static/main/map.js"></script>
-    <script src="/static/main/car_sales.js"></script>
-    <script src="/static/main/zufang_shoufang_price_compare.js"></script>
-    <script src="/static/main/every_regions_zufang_count.js"></script>
-    <script src="/static/main/every_regions_ershoufang_count.js"></script>
-    <script src="/static/main/economic_active.js"></script>
-    <script src="/static/main/fang_wu_zheng_shou.js"></script>
-    <script src="/static/main/yu_shou_trend.js"></script>
-    <script src="/static/main/gong_zu_fang.js"></script>
-    <script src="/static/main/company_sorted.js"></script>
-    <script src="/static/main/company_sorted_bad.js"></script>
-    <script src="/static/main/bank_trend.js"></script>
-    <script src="/static/main/company_amont.js"></script>
+    // 加载排行榜数据
+    fetch('/data/getCarSalesByMonthAndType?type=all&month=05')
+      .then(res => res.json())
+      .then(data => {
+        const tbody = document.getElementById('salesTableBody');
+        tbody.innerHTML = '';
+        const top10 = data.sort((a, b) => a.ranking - b.ranking).slice(0, 10);
+        const maxSales = Math.max(...top10.map(c => c.sales));
 
-    <!-- 添加图表resize监听 -->
-    <script>
-        // 监听窗口大小变化，重新调整图表大小
-        window.addEventListener('resize', function () {
-            if (typeof myChart1 !== 'undefined') myChart1.resize();
-            if (typeof myChart2 !== 'undefined') myChart2.resize();
-            // 添加其他图表resize...
+        top10.forEach((car, index) => {
+          let medal;
+          if (index === 0) medal = '<span class="gold-medal">🥇</span>';
+          else if (index === 1) medal = '<span class="silver-medal">🥈</span>';
+          else if (index === 2) medal = '<span class="bronze-medal">🥉</span>';
+          else medal = index + 1;
+
+          const tr = document.createElement('tr');
+          const barWidthPercent = Math.max((car.sales / maxSales) * 100, 10);
+
+          tr.innerHTML = `
+            <td>${medal}</td>
+            <td title="${car.car_name}">${car.car_name}</td>
+            <td>${car.sales}</td>
+          `;
+
+          const barDiv = document.createElement('div');
+          barDiv.className = 'row-bar';
+          barDiv.style.width = barWidthPercent + '%';
+          tr.appendChild(barDiv);
+          tbody.appendChild(tr);
         });
-    </script>
-</body>
+      });
 
+    // 初始化图表
+    
+    var lineChart = echarts.init(document.getElementById('lineChart'));
+
+    // 折线图数据
+    function drawMPVTop5LineChart() {
+      fetch('/api/mpv/monthly?startMonth=2025-01&endMonth=2025-05')
+        .then(res => res.json())
+        .then(data => {
+          const months = data.months.map(m => m.slice(5) + '月');
+          const series = data.series
+            .map(s => ({ model: s.model, data: s.data, total: s.data.reduce((a, b) => a + b, 0) }))
+            .sort((a, b) => b.total - a.total)
+            .slice(0, 5);
+
+          const option = {
+            tooltip: {
+              trigger: 'axis',
+              backgroundColor: 'rgba(0,0,0,0.75)',
+              textStyle: {
+                color: '#fff',
+                fontSize: 8
+              },
+              confine: true,
+            },
+            legend: {
+              top: 0,
+              itemWidth: 8,  // 圆点宽度，默认是14
+              itemHeight: 8, // 圆点高度，默认是14
+              textStyle: { 
+                color: '#fff' ,
+                fontSize: 8   // ✅ 设置图例字体大小
+              }
+            },
+             grid: {
+              top: 50,
+              left: 40,
+              right:30,
+              bottom: 20 // ✅ 控制与底部的距离
+            },
+            xAxis: {
+              type: 'category',
+              data: months,
+              axisLabel: { 
+                color: '#fff',
+                fontSize: 8   // ✅ 设置图例字体大小 
+                 },
+              axisLine: { lineStyle: { color: '#66ccff' } }
+            },
+            yAxis: {
+              type: 'value',
+              axisLabel: { 
+                color: '#fff',
+                fontSize: 8   // ✅ 设置图例字体大小
+               },
+              axisLine: { lineStyle: { color: '#66ccff' } },
+              splitLine: { lineStyle: { color: '#11334d' } }
+            },
+            series: series.map(item => ({
+              name: item.model,
+              type: 'line',
+              smooth: true,
+              data: item.data,
+              lineStyle: { width: 2 },
+              emphasis: { focus: 'series' }
+            }))
+          };
+          lineChart.setOption(option);
+        });
+    }
+
+    // 词云初始化
+    document.addEventListener("DOMContentLoaded", function () {
+      const tooltip = document.getElementById("tooltip");
+      let isPaused = false;
+      let activeTag = null;
+      let clickedTag = null;
+
+      fetch("/data/getAllCarSales")
+        .then(res => res.json())
+        .then(data => {
+          const ul = document.getElementById("carTags");
+          const maxSales = Math.max(...data.map(item => item.value));
+          data.forEach(item => {
+            const li = document.createElement("li");
+            const a = document.createElement("a");
+            a.className = "tag-link";
+            a.href = "#";
+            a.textContent = item.name;
+            a.dataset.name = item.name;
+            a.dataset.sales = item.value.toLocaleString();
+            const fontSize = 10 + (item.value / maxSales) * 26;
+            a.style.fontSize = `${fontSize}px`;
+            const hue = Math.random() * 360;
+            a.style.color = `hsl(${hue}, 80%, 60%)`;
+
+            a.addEventListener("mouseenter", function (e) {
+              if (!isPaused && !clickedTag) TagCanvas.Pause("carCanvas");
+              isPaused = true;
+              activeTag = this;
+              tooltip.innerHTML = `<div>${this.dataset.name}</div><div style='color:#ffcc00;margin-top:5px;'>销量: ${this.dataset.sales}辆</div>`;
+              tooltip.classList.add("show");
+              updateTooltipPosition(e);
+            });
+
+            a.addEventListener("mousemove", updateTooltipPosition);
+
+            a.addEventListener("mouseleave", function () {
+              if (isPaused && !clickedTag) TagCanvas.Resume("carCanvas");
+              isPaused = false;
+              if (activeTag !== clickedTag) {
+                activeTag = null;
+                tooltip.classList.remove("show");
+              }
+            });
+
+            a.addEventListener("click", function (e) {
+              e.preventDefault();
+              if (clickedTag === this) {
+                this.classList.remove("active");
+                this.textContent = this.dataset.name;
+                clickedTag = null;
+                TagCanvas.Resume("carCanvas");
+                isPaused = false;
+                tooltip.classList.remove("show");
+                return;
+              }
+              if (clickedTag) {
+                clickedTag.classList.remove("active");
+                clickedTag.textContent = clickedTag.dataset.name;
+              }
+              this.classList.add("active");
+              this.textContent = `${this.dataset.name}：${this.dataset.sales}辆`;
+              clickedTag = this;
+              TagCanvas.Pause("carCanvas");
+              isPaused = true;
+              tooltip.innerHTML = `<div>${this.dataset.name}</div><div style='color:#ffcc00;margin-top:5px;'>销量: ${this.dataset.sales}辆</div>`;
+              tooltip.classList.add("show");
+              updateTooltipPosition(e);
+            });
+
+            li.appendChild(a);
+            ul.appendChild(li);
+          });
+
+          TagCanvas.Start("carCanvas", "carTags", {
+            textColour: null,
+            outlineColour: "transparent",
+            reverse: true,
+            depth: 0.8,
+            maxSpeed: 0.02,
+            minSpeed: 0.008,
+            initial: [0.03, -0.03],
+            decel: 0.98,
+            weight: true,
+            weightMode: "size",
+            weightSize: 1.5,
+            wheelZoom: false,
+            noSelect: true,
+            freezeActive: true,
+            freezeDecel: true,
+            tooltip: null,
+            fadeIn: 1500,
+            shuffleTags: true
+          });
+        });
+
+      function updateTooltipPosition(e) {
+        const target = activeTag || clickedTag;
+        if (!target) return;
+        const x = e.clientX + 15;
+        const y = e.clientY + 15;
+        tooltip.style.left = `${x}px`;
+        tooltip.style.top = `${y}px`;
+      }
+    });
+    
+    drawMPVTop5LineChart();
+  </script>
+</body>
 </html>
