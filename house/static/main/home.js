@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const username = localStorage.getItem('username');
 
     // 加载头像列表
-    const totalAvatars = 5;
+    const totalAvatars = 8;
     for (let i = 1; i <= totalAvatars; i++) {
         const img = document.createElement('img');
         img.src = `../static/img/${i}.jpg`;
