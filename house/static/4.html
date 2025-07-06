@@ -81,7 +81,32 @@
       background: orange;
       color: #000;
     }
+    /* 自定义滚动条样式 - 针对 WebKit 浏览器 (Chrome, Edge, Safari) */
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
 
+    ::-webkit-scrollbar-track {
+      background: #1a1a1a; /* 滚动条背景轨道 */
+      border-radius: 5px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background-color: #555; /* 滚动条滑块 */
+      border-radius: 6px;
+      border: 2px solid #1a1a1a;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background-color: #888;
+    }
+
+    /* Firefox 滚动条样式 */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: #555 #1a1a1a;
+    }
 
   </style>
 </head>
