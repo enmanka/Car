@@ -7,7 +7,7 @@ from sqlalchemy import func
 import csv
 import io
 from datetime import datetime
-from flask import Response
+from flask import Response 
 from urllib.parse import quote
 
 import hashlib
@@ -24,7 +24,7 @@ from house.dbmodule.every_regions_ershoufang_count import EveryRegionsErshoufang
 from house.dbmodule.every_regions_zufang_count import EveryRegionsZufangCount
 from house.dbmodule.fang_wu_zheng_shou import FangWuZhengShou
 from house.dbmodule.gong_zu_fang import GongZuFang
-# from house.dbmodule.serven_area import ServenArea
+#from house.dbmodule.serven_area import ServenArea
 from house.dbmodule.car_sales import CarSales
 from house.dbmodule.user import User
 from house.dbmodule.yu_shou_trend import YuShouTrend
@@ -33,7 +33,7 @@ from house.dbmodule.car_month import CarMonth
 from house.dbmodule.export_record import ExportRecord
 
 from sqlalchemy import text
-from urllib.parse import quote
+from urllib.parse import quote 
 
 """
 本视图专门用于处理ajax数据
@@ -54,7 +54,6 @@ def generate_password_hash(password):
     )
     return f"{salt}:{iterations}:{hashed.hex()}"
 
-
 # 验证密码
 def check_password_hash(hashed_password, input_password):
     salt, iterations, stored_hash = hashed_password.split(':')
@@ -65,7 +64,6 @@ def check_password_hash(hashed_password, input_password):
         int(iterations)
     )
     return stored_hash == new_hash.hex()
-
 
 @data.route('/exportCarSalesCSV')
 def export_car_sales_csv():
@@ -112,7 +110,6 @@ def export_car_sales_csv():
 
     return response
 
-
 @data.route('/getExportRecords')
 def get_export_records():
     user_name = request.args.get('user_name')
@@ -132,9 +129,7 @@ def get_export_records():
     except Exception as e:
         return jsonify({'error': f'查询失败: {str(e)}'}), 500
 
-
 import traceback
-
 
 @data.route('/getCarSalesByMonthAndType', methods=['GET'])
 def get_car_sales_by_month_type():
@@ -172,6 +167,7 @@ def get_car_sales_by_month_type():
 
 @data.route('/getCarFollow')
 def get_car_follow():
+
     # 找出北京关注度前十的汽车名
     beijing_top_ten = (
         db.session.query(CarFollow.car_name)
@@ -207,7 +203,6 @@ def get_car_follow():
     # 把数据打包成 JSON 并返回
     return jsonify(items)
 
-
 @data.route('/update_avatar', methods=['POST'])
 def update_avatar():
     data = request.get_json()
@@ -226,24 +221,23 @@ def update_avatar():
 
     return jsonify({'message': '头像更新成功'}), 200
 
-
 @data.route('/getCarSales')
 def get_acar_sales():
     month = request.args.get('month')  # 拿到顾客要求的月份
-
+    
     # 从数据库（CarSales表）筛选数据
-    query = CarSales.query.filter_by(month=month) \
-        .order_by(CarSales.sales.desc()) \
-        .limit(5)
+    query = CarSales.query.filter_by(month=month)\
+                         .order_by(CarSales.sales.desc())\
+                         .limit(5)
     # for item in query:
     #     print(item.car_name, item.sales)
 
+    
     # 把数据打包成JSON（外卖盒）
     return jsonify([
-        {"car_name": item.car_name, "sales": item.sales}
+        {"car_name": item.car_name, "sales": item.sales} 
         for item in query
     ])
-
 
 @data.route('/getAllCarSales')
 def get_all_car_sales():
@@ -257,22 +251,22 @@ def get_all_car_sales():
         .limit(30)
         .all()
     )
-
+    
     # 转换Decimal为int并格式化数据
     wordcloud_data = [
         {
             "name": name,
             "value": int(total_sales)  # 将Decimal转换为int
-        }
+        } 
         for name, total_sales in result
     ]
     return jsonify(wordcloud_data)
-
 
 @data.route('/getCarSales_All')
 def getCarSales_All():
     # 从数据库（CarSales表）获取所有数据
     all_car_sales = CarSales.query.all()
+    count = request.args.get('count', type=int, default=15)
 
     # 用于存储按 car_name 汇总的销售数据
     car_sales_summary = {}
@@ -285,27 +279,27 @@ def getCarSales_All():
             car_sales_summary[car_name] += sales
         else:
             car_sales_summary[car_name] = sales
-        print(car_name, car_sales_summary[car_name])
+        print(car_name,car_sales_summary[car_name])
 
     # 将汇总结果转换为列表格式，并按总销量降序排序
     result = [{"car_name": car_name, "total_sales": total_sales} for car_name, total_sales in car_sales_summary.items()]
     result.sort(key=lambda x: x["total_sales"], reverse=True)
 
     # 仅取前十个数据
-    result = result[:15]
+    # result = result[:15]
+    result = result[:count]
 
     # 把数据打包成 JSON 并返回
     return jsonify(result)
-
 
 @data.route('/getCarSalesByMonth')
 def get_car_sales_by_month():
     # 获取请求参数中的月份
     month = request.args.get('month')
-
+    
     if not month or not month.isdigit() or int(month) not in range(1, 13):
         return jsonify({"error": "Invalid month parameter"}), 400
-
+    
     # 查询指定月份的数据
     result = (
         db.session.query(
@@ -318,18 +312,17 @@ def get_car_sales_by_month():
         .limit(30)
         .all()
     )
-
+    
     # 转换Decimal为int并格式化数据
     wordcloud_data = [
         {
             "name": name,
             "value": int(total_sales)  # 将Decimal转换为int
-        }
+        } 
         for name, total_sales in result
     ]
-
+    
     return jsonify(wordcloud_data)
-
 
 # 注册接口
 @data.route('/register', methods=['POST'])
@@ -339,7 +332,7 @@ def register():
     # 检查用户名是否存在
     if User.query.filter_by(usr_name=data['usr_name']).first():
         return jsonify({"error": "用户名已存在"}), 400
-
+    
     # 获取头像索引，若未提供则默认值为 1
     avatar_index = data.get('avatar_index', 1)
 
@@ -351,29 +344,27 @@ def register():
     )
     db.session.add(new_user)
     db.session.commit()
-
+    
     return jsonify({"message": "注册成功"}), 201
-
 
 # 登录接口
 @data.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
     user = User.query.filter_by(usr_name=data['usr_name']).first()
-
+    
     if not user or not check_password_hash(user.pwd, data['pwd']):
         return jsonify({"error": "用户名或密码错误"}), 401
-
+    
     # 生成简单token（实际生产环境需要更安全的方案）
     token = secrets.token_urlsafe(32)
-
+    
     return jsonify({
         "message": "登录成功",
         "token": token,
         "username": user.usr_name,
         "avatar_index": user.avatar_index
     })
-
 
 @data.route('/change_password', methods=['POST'])
 def change_password():
@@ -398,7 +389,6 @@ def change_password():
     db.session.commit()
 
     return jsonify({"message": "密码修改成功"}), 200
-
 
 @data.route('/getMap', methods=['GET'])
 def get_map():
@@ -593,3 +583,4 @@ def get_company_amont():
     [build_view_data(item) for item in data]
 
     return json.dumps(view_data, ensure_ascii=False)
+

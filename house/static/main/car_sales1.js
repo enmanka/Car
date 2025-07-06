@@ -5,12 +5,20 @@ var carSalesChart = null;
 function initCarSalesModule() {
     // 初始化图表（加载所有车系总销量数据）
     fetchCarSalesData();
+
+    // 监听滑动按钮变化
+    const slider = document.getElementById('data-count-slider');
+    const valueSpan = document.getElementById('data-count-value');
+    slider.addEventListener('input', function() {
+        valueSpan.textContent = this.value;
+        fetchCarSalesData(this.value);
+    });
 }
 
-// 数据获取函数
-function fetchCarSalesData() {
+// 数据获取函数，添加 count 参数
+function fetchCarSalesData(count) {
     $.ajax({
-        url: "/data/getCarSales_All",
+        url: `/data/getCarSales_All?count=${count}`,
         type: "GET",
         dataType: "json",
         beforeSend: function () {
@@ -89,19 +97,20 @@ function renderCarSalesChart(data) {
             max: 250000,
             inRange: {
                 color: [
-                      '#313695',
-        '#4575b4',
-        '#74add1',
-        '#abd9e9',
-        '#e0f3f8',
-        '#ffffbf',
-        '#fee090',
-        '#fdae61',
-        '#f46d43',
-        '#d73027',
-        '#a50026']
+                    '#313695',
+                    '#4575b4',
+                    '#74add1',
+                    '#abd9e9',
+                    '#e0f3f8',
+                    '#ffffbf',
+                    '#fee090',
+                    '#fdae61',
+                    '#f46d43',
+                    '#d73027',
+                    '#a50026'
+                ]
             }
-            },
+        },
         tooltip: {
             trigger: 'item',
             formatter: function (params) {
@@ -221,19 +230,7 @@ function renderCarSalesChart(data) {
             type: 'bar3D',
             data: zData.map((value, index) => [index, 0, value]),
             itemStyle: {
-                color:'rgba(0,200,0,1)',
-                // 为每个柱子设置不同的渐变
-                // color: function (params) {
-                //     return new echarts.graphic.LinearGradient(
-                //         0, 0, 0, 1,
-                //         [
-                //             { offset: 0, color: '#FF5733' },
-                //             { offset: 0.5, color: '#33FF57' },
-                //             { offset: 1, color: '#5733FF' }
-                //         ],
-                //         false
-                //     );
-                // },
+                color: barColor,
                 borderWidth: 2,
                 borderColor: 'rgba(255, 255, 255, 0.8)',
                 opacity: 0.4
@@ -242,26 +239,14 @@ function renderCarSalesChart(data) {
             shading:'color',
             emphasis: {
                 itemStyle: {
-                    color:'rgba(200,0,0,1)',
-                    // 为每个柱子设置不同的渐变
-                    // color: function (params) {
-                    //     return new echarts.graphic.LinearGradient(
-                    //         0, 0, 0, 1,
-                    //         [
-                    //             { offset: 0, color: '#FF5733' },
-                    //             { offset: 0.5, color: '#33FF57' },
-                    //             { offset: 1, color: '#5733FF' }
-                    //         ],
-                    //         false
-                    //     );
-                    // },
+                    color: 'rgba(200,0,0,1)',
                     borderWidth: 3,
                     borderColor: '#fff',
                     opacity: 0.9
                 },
                 label: {
                     show: true,
-                    color: '#900',
+                    color: '#bf7070',
                     fontSize: 20,
                     textShadow: '2px 2px 4px rgba(0, 0, 0, 0.5)'
                 }

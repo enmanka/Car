@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const username = localStorage.getItem('username');
 
     // 加载头像列表
-    const totalAvatars = 5;
+    const totalAvatars = 8;
     for (let i = 1; i <= totalAvatars; i++) {
         const img = document.createElement('img');
         img.src = `../static/img/${i}.jpg`;
@@ -220,3 +220,107 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+async function getCarRecommendation() {
+    const budget = document.getElementById('budget').value;
+    const purpose = document.getElementById('purpose').value;
+    const requirements = document.getElementById('requirements').value;
+
+    const resultDiv = document.getElementById('recommendation-result');
+    const contentDiv = document.getElementById('recommendation-content');
+    resultDiv.style.display = 'block';
+    contentDiv.innerHTML = '<p><i class="ri-loader-4-line spin"></i> AI正在思考...</p>';
+
+    try {
+        // 👇 替换为 DeepSeek API 调用
+        const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer sk-bb676e8c4a0a4263a0ad340ecc7274cd' // 替换为你的真实API密钥
+            },
+            body: JSON.stringify({
+                model: "deepseek-chat",
+                messages: [{
+                    role: "user",
+                    content: `请推荐3款适合预算${budget}万元、主要用途为${purpose}的车型。${requirements ? '其他需求：' + requirements : ''}。要求：1.包含品牌、型号、价格 2.简短推荐理由 3.用中文回答`
+                }],
+                temperature: 0.7,
+                max_tokens: 500
+            })
+        });
+        // 👇 先打印原始响应文本
+        const rawResponse = await response.text();
+        console.log("原始响应:", rawResponse);
+
+        // 然后再尝试解析JSON
+        const data = JSON.parse(rawResponse);
+        //const data = await response.json();
+        const recommendation = data.choices[0].message.content;
+        contentDiv.innerHTML = markdownToHtml(recommendation);
+
+    } catch (error) {
+        console.error('DeepSeek API 请求失败:', error);
+        contentDiv.innerHTML = `
+            <p style="color:#ff6b6b;">请求失败: ${error.message}</p>
+            <p>备用推荐：${getFallbackRecommendation(budget, purpose)}</p>
+        `;
+    }
+}
+
+// 简单的Markdown转HTML（用于显示AI返回的内容）
+function markdownToHtml(md) {
+    return md
+        .replace(/^### (.*$)/gm, '<h4>$1</h4>')
+        .replace(/^## (.*$)/gm, '<h3>$1</h3>')
+        .replace(/^# (.*$)/gm, '<h2>$1</h2>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/\n/g, '<br>');
+}
+
+// 备用推荐数据（当API不可用时）
+function getFallbackRecommendation(budget, purpose) {
+    const recommendations = {
+        "家庭日常使用": [
+            "1. **丰田卡罗拉** (10-15万): 经济实惠，油耗低，维修成本低",
+            "2. **本田思域** (12-18万): 动力充沛，空间适中，保值率高",
+            "3. **大众速腾** (13-17万): 德系品质，舒适性好，安全性高"
+        ],
+        "商务接待": [
+            "1. **奔驰E级** (40-60万): 豪华品牌，商务气质，舒适性极佳",
+            "2. **奥迪A6L** (35-55万): 官车形象，科技感强，空间宽敞",
+            "3. **丰田亚洲龙** (20-30万): 性价比高，混动版本省油"
+        ]
+        // 可以添加更多场景...
+    };
+
+    let result = `<h4>基于您的预算(${budget}万)和用途(${purpose})推荐:</h4>`;
+
+    if (recommendations[purpose]) {
+        result += '<ul>';
+        recommendations[purpose].forEach(item => {
+            result += `<li>${item}</li>`;
+        });
+        result += '</ul>';
+    } else {
+        result += '<p>暂无特定推荐，建议考虑丰田、本田或大众的中端车型。</p>';
+    }
+
+    result += '<p style="color:#888;font-size:0.9em;">注：这是本地备用推荐，AI服务可能暂时不可用</p>';
+    return result;
+}
+
+// 添加旋转动画样式
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .spin {
+        animation: spin 1s linear infinite;
+        display: inline-block;
+    }
+`;
+document.head.appendChild(style);
