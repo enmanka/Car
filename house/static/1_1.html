@@ -59,9 +59,69 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
+    #salesTable {
+      border-collapse: separate; /* 避免合并边框 */
+      border-spacing: 0 6px; /* 行间距6px制造间隙 */
+      width: 100%;
+      table-layout: fixed;
+      color: #fff;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    /* 行整体相对定位，留位置放背景条 */
+    #salesTable tr {
+      position: relative;
+      height: 40px;
+      background: transparent; /* 透明背景，条形条自己填色 */
+      cursor: pointer;
+    }
+
+    /* 每行底部分隔线，用margin替代border防止影响布局 */
+    #salesTable tr:not(:last-child) {
+      margin-bottom: 6px;
+    }
+
+
+    /* 透明条形背景，基于 #66fcf1 渐变 */
+    #salesTable tr .row-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      border-radius: 8px;
+      background: linear-gradient(90deg, rgba(102,252,241,0.4), rgba(102,252,241,0.15));
+      z-index: 0;
+      pointer-events: none;
+      box-shadow: 0 0 8px rgba(102,252,241,0.6);
+    }
+
+    /* 鼠标悬停时加深色和阴影 */
+    #salesTable tr:hover .row-bar {
+      background: linear-gradient(90deg, rgba(102,252,241,0.7), rgba(102,252,241,0.3));
+      box-shadow: 0 0 12px rgba(102,252,241,0.9);
+    }
+
+
+
+    /* td层级高于背景条，文本白色加阴影 */
+    #salesTable tr td {
+      position: relative;
+      z-index: 1;
+      padding-left: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow: 0 0 3px rgba(0,0,0,0.6);
+    }
+
+
+    /* 奖牌颜色 */
     .gold-medal { color: gold; font-weight: bold; }
     .silver-medal { color: silver; font-weight: bold; }
     .bronze-medal { color: #cd7f32; font-weight: bold; }
+
     #canvasContainer, #carCanvas {
       width: 100%; height: 100%; position: relative; background: transparent;
     }
@@ -71,7 +131,14 @@
       z-index: 100; color: #ffcc00;
     }
     #tooltip.show { opacity: 1; }
-    ul#carTags { display: none; }
+    ul#carTags {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      visibility: hidden; /* 不影响布局但能让 TagCanvas 获取内容 */
+    }
+
     .tag-link {
       text-decoration: none; transition: all 0.3s; display: inline-block; position: relative;
       cursor: pointer; color: #66ccff;
@@ -181,15 +248,31 @@
       </div>
     </div>
   </div>
+    <!-- 车名详情弹窗 -->
+  <div class="modal fade" id="carDetailModal" tabindex="-1" role="dialog" aria-labelledby="carDetailLabel">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content" style="background-color: #0f1c2e; color: white;">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span>&times;</span></button>
+          <h4 class="modal-title" id="carDetailLabel">车型详情</h4>
+        </div>
+        <div class="modal-body" id="carDetailBody">
+          加载中...
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- 依赖 -->
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud@2.0.0/dist/echarts-wordcloud.min.js"></script>
-  <script src="https://www.goat1000.com/tagcanvas.min.js"></script>
+  <script src="https://www.goat1000.com/tagcanvas.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js"></script>
 
   <script>
+    console.log("🚀 JS 已加载");
+
     function goToMonthlySales() {
       window.parent.frames['contentFrame'].location.href = '../static/4.html';
     }
@@ -200,18 +283,39 @@
       .then(data => {
         const table = document.getElementById('salesTable');
         table.innerHTML = '';
-        const top10 = data.sort((a, b) => a.ranking - b.ranking).slice(0, 15);
+        const top10 = data.sort((a, b) => a.ranking - b.ranking).slice(0, 10);
+        const maxSales = Math.max(...top10.map(c => c.sales));
+
         top10.forEach((car, index) => {
           let medal;
           if (index === 0) medal = '<span class="gold-medal">🥇</span>';
           else if (index === 1) medal = '<span class="silver-medal">🥈</span>';
           else if (index === 2) medal = '<span class="bronze-medal">🥉</span>';
           else medal = index + 1;
+
           const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${medal}</td><td title="${car.car_name}">${car.car_name}</td><td>${car.sales}</td>`;
+
+          const barWidthPercent = Math.max((car.sales / maxSales) * 100, 10);
+
+          tr.innerHTML = `
+            <td>${medal}</td>
+            <td title="${car.car_name}">${car.car_name}</td>
+            <td>${car.sales}</td>
+          `;
+
+          // 创建条形背景div，宽度按销量比例
+          const barDiv = document.createElement('div');
+          barDiv.className = 'row-bar';
+          barDiv.style.width = barWidthPercent + '%';
+
+          // 添加到 tr 中，作为背景条
+          tr.appendChild(barDiv);
+
           table.appendChild(tr);
         });
       });
+
+
 
     // 初始化 ECharts 实例
     var barChart = echarts.init(document.getElementById('barChart'));
@@ -312,8 +416,7 @@
         });
     }
 
-    // 词云和TagCanvas逻辑完整
-    document.addEventListener("DOMContentLoaded", function () {
+    window.onload = function () {
       const tooltip = document.getElementById("tooltip");
       let isPaused = false;
       let activeTag = null;
@@ -323,7 +426,10 @@
         .then(res => res.json())
         .then(data => {
           const ul = document.getElementById("carTags");
+          ul.innerHTML = "";
+
           const maxSales = Math.max(...data.map(item => item.value));
+
           data.forEach(item => {
             const li = document.createElement("li");
             const a = document.createElement("a");
@@ -332,6 +438,7 @@
             a.textContent = item.name;
             a.dataset.name = item.name;
             a.dataset.sales = item.value.toLocaleString();
+
             const fontSize = 10 + (item.value / maxSales) * 26;
             a.style.fontSize = `${fontSize}px`;
             const hue = Math.random() * 360;
@@ -359,53 +466,60 @@
 
             a.addEventListener("click", function (e) {
               e.preventDefault();
-              if (clickedTag === this) {
-                this.classList.remove("active");
-                this.textContent = this.dataset.name;
-                clickedTag = null;
-                TagCanvas.Resume("carCanvas");
-                isPaused = false;
-                tooltip.classList.remove("show");
-                return;
-              }
-              if (clickedTag) {
-                clickedTag.classList.remove("active");
-                clickedTag.textContent = clickedTag.dataset.name;
-              }
-              this.classList.add("active");
-              this.textContent = `${this.dataset.name}：${this.dataset.sales}辆`;
-              clickedTag = this;
-              TagCanvas.Pause("carCanvas");
-              isPaused = true;
-              tooltip.innerHTML = `<div>${this.dataset.name}</div><div style='color:#ffcc00;margin-top:5px;'>销量: ${this.dataset.sales}辆</div>`;
-              tooltip.classList.add("show");
-              updateTooltipPosition(e);
+              const carName = this.dataset.name;
+
+              fetch(`/api/carType?model=${encodeURIComponent(carName)}`)
+                .then(res => res.json())
+                .then(typeRes => {
+                  const type = typeRes.type;
+                  if (!type) throw new Error("未找到车型分类");
+
+                  return fetch(`/api/${type}/monthly?model=${encodeURIComponent(carName)}&startMonth=2025-01&endMonth=2025-05`);
+                })
+                .then(res => res.json())
+                .then(data => {
+                  const car = data.rows?.[data.rows.length - 1];
+                  const img = data.imageUrl || "/static/img/default.png";
+
+                  document.getElementById("carDetailLabel").textContent = `${car.model} - 详情`;
+                  document.getElementById("carDetailBody").innerHTML = `
+                    <img src="${img}" style="width:100%;border-radius:6px;margin-bottom:10px;" />
+                    <p><strong>销量：</strong>${car.sales || '未知'} 辆</p>
+                    <p><strong>排名：</strong>${car.ranking ?? '未知'}</p>
+                    <p><strong>评分：</strong>${car.rating ?? '暂无评分'}</p>
+                    <p><strong>指导价：</strong>${car.price_range || '暂无'}</p>
+                    <p><strong>月份：</strong>${car.month}</p>
+                  `;
+                  $('#carDetailModal').modal('show');
+                })
+                .catch(err => {
+                  document.getElementById("carDetailBody").innerHTML = `<p style="color:red;">${err.message}</p>`;
+                  $('#carDetailModal').modal('show');
+                });
             });
 
             li.appendChild(a);
             ul.appendChild(li);
           });
 
-          TagCanvas.Start("carCanvas", "carTags", {
-            textColour: null,
-            outlineColour: "transparent",
+          // ✅ 插入完成后启动词云图
+          if (!TagCanvas.Start("carCanvas", "carTags", {
+            textColour: "#ffffff",
+            outlineColour: "#66ccff",
             reverse: true,
             depth: 0.8,
-            maxSpeed: 0.02,
-            minSpeed: 0.008,
-            initial: [0.03, -0.03],
-            decel: 0.98,
+            maxSpeed: 0.05,
             weight: true,
-            weightMode: "size",
-            weightSize: 1.5,
             wheelZoom: false,
-            noSelect: true,
-            freezeActive: true,
-            freezeDecel: true,
-            tooltip: null,
-            fadeIn: 1500,
-            shuffleTags: true
-          });
+            initial: [0.05, -0.01],
+            tooltip: "native",
+          })) {
+            document.getElementById("canvasContainer").innerHTML = "词云加载失败，请刷新重试";
+          }
+        })
+        .catch(err => {
+          console.error("词云加载异常", err);
+          document.getElementById("canvasContainer").innerHTML = "词云加载失败，请刷新重试";
         });
 
       function updateTooltipPosition(e) {
@@ -426,7 +540,8 @@
           tooltip.style.top = `${rect.top}px`;
         }
       });
-    });
+    }
+
     // 页面加载后画出折线图
    drawMPVTop5LineChart();
   </script>
