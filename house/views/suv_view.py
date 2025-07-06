@@ -143,5 +143,12 @@ def suv_monthly():
         return jsonify(months=months, rows=rows_out, imageUrl=image_url)
 
     # 全量
-    series = [{"model": m, "data": data[m]} for m in models]
+    # 全量
+    series = []
+    for m in models:
+        series.append({
+            "model": m,
+            "data": data[m],
+            "detail": detail[m]  # ✅ 加入 detail
+        })
     return jsonify(months=months, series=series)
