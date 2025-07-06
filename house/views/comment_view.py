@@ -20,22 +20,22 @@ def list_comments():
                 .order_by(Comment.created_at.desc())
                 .all())
     
-    # 转换为北京时间 (UTC+8)
-    beijing_tz = pytz.timezone('Asia/Shanghai')
+    # # 转换为北京时间 (UTC+8)
+    # beijing_tz = pytz.timezone('Asia/Shanghai')
     
     data = []
     for comment in comments:
         # 确保时间是aware datetime对象
         utc_time = comment.created_at.replace(tzinfo=pytz.UTC)
-        # 转换为北京时间
-        beijing_time = utc_time.astimezone(beijing_tz)
+        # # 转换为北京时间
+        # beijing_time = utc_time.astimezone(beijing_tz)
         
         data.append({
             'id': comment.id,
             'usr_name': comment.usr_name,
             'content': comment.content,
             'like_count': comment.like_count,
-            'created_at': beijing_time.strftime('%Y-%m-%d %H:%M')  # 格式化北京时间
+            'created_at': utc_time.strftime('%Y-%m-%d %H:%M')  # 格式化北京时间
         })
     
     return jsonify(data), 200
