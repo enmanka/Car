@@ -172,6 +172,46 @@
             color: #66fcf1;
             transform: translateY(-2px);
         }
+
+        /* 删除确认弹窗 */
+        .delete-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .delete-content {
+            background: #2b2b3d;
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+            text-align: center;
+        }
+
+        .delete-btns {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .delete-btn {
+            background: #ff4757;
+            color: white;
+        }
+
+        .car-name-delete {
+            color: #66fcf1;
+            cursor: pointer;
+            text-decoration: underline;
+        }
     </style>
 </head>
 
@@ -194,8 +234,10 @@
         <div class="profile-name" id="profileName"></div>
 
         <div class="nav-tabs">
-            <!-- <div class="nav-tab active" onclick="switchTab('reviews')">发表的评价</div> -->
-            <div class="nav-tab active" onclick="switchTab('downloads')">历史下载数据</div>
+            <div class="nav-tab active" onclick="switchTab('reviews')">
+                发表的评论<!-- 评论列表将在这里动态渲染 -->
+            </div>
+            <div class="nav-tab" onclick="switchTab('downloads')">历史下载数据</div>
             <div class="nav-tab" onclick="switchTab('password')">修改密码</div>
             <div class="nav-tab" onclick="switchTab('car-recommend')">AI车型推荐</div>
         </div>
@@ -263,6 +305,16 @@
                     <input type="password" id="confirm-password" placeholder="请再次输入新密码" /><br />
                     <button type="button" id="change-btn">提交修改</button>
                     <p id="change-message" style="margin-top:10px;"></p>
+            </div>
+        </div>
+    </div>
+    <div id="deleteModal" class="delete-modal">
+        <div class="delete-content">
+            <h3>确认删除评论？</h3>
+            <p>删除后将无法恢复</p>
+            <div class="delete-btns">
+                <button id="confirmDelete" class="delete-btn">确认删除</button>
+                <button id="cancelDelete">取消</button>
             </div>
         </div>
     </div>
