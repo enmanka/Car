@@ -1,6 +1,6 @@
 # 文件：house/models.py
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from house.config import db
 
 class Comment(db.Model):
@@ -11,7 +11,7 @@ class Comment(db.Model):
     car_name   = db.Column('car_name', db.String(100), nullable=False, index=True, comment='车型名称')
     content    = db.Column('content', db.Text, nullable=False, comment='评论内容')
     like_count = db.Column('like_count', db.Integer, default=0, nullable=False, comment='点赞数')
-    created_at = db.Column('created_at', db.DateTime, default=datetime.utcnow, nullable=False, comment='发表时间')
+    created_at = db.Column(db.DateTime, default=lambda: datetime.utcnow() + timedelta(hours=8))
 
     def __repr__(self):
         return f"<Comment id={self.id} usr_name={self.usr_name} car_name={self.car_name}>"
