@@ -90,7 +90,7 @@
       border-radius: 12px;
       padding: 12px;
       box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
-      overflow: hidden;
+      overflow: auto;/*hidden;*/
     }
 
     /* 统一面板标题 */
@@ -148,7 +148,7 @@
       z-index: 1;
       padding-left: 8px;
       white-space: nowrap;
-      overflow: hidden;
+      overflow: auto;/*hidden;*/
       text-overflow: ellipsis;
       text-shadow: 0 0 3px rgba(0,0,0,0.6);
     }
@@ -207,6 +207,31 @@
       opacity: 1; 
       background: rgba(0,0,0,0.5); 
     }
+    /* 自定义滚动条（适用于 Chrome、Edge 和大多数现代浏览器） */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent; /* 滚动轨道背景 */
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(102, 204, 255, 0.4); /* 滚动条颜色，和你面板颜色协调 */
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(102, 204, 255, 0.7); /* 悬停时更亮 */
+    }
+
+    /* Firefox 自定义滚动条 */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(102, 204, 255, 0.4) transparent;
+    }
+
   </style>
 </head>
 <body>
