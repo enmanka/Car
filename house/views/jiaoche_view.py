@@ -76,7 +76,10 @@ def jiaoche_monthly():
             if row and row[0]:
                 image_url = row[0]
                 break
-
+                
+        # 🔔 若所有月表都没找到该车型，返回错误信息
+        if image_url is None:
+            return jsonify(error=f"未找到车型：{model}"), 404
     # 组装车型列表
     if model:
         models = [model]
