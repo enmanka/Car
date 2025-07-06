@@ -7,7 +7,15 @@ pymysql.install_as_MySQLdb()
 
 app = Flask(__name__)
 
-
+app.config['DB_CONFIG'] = {
+    'host':        '192.168.49.134',
+    'port':        3306,
+    'user':        'root',
+    'password':    'root',
+    'db':          'iuxn',
+    'charset':     'utf8mb4',
+    'cursorclass': None
+}
 
 # 直接连接到虚拟机上的 MySQL
 app.config["SQLALCHEMY_DATABASE_URI"] = (
