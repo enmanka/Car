@@ -9,7 +9,8 @@ import io
 from datetime import datetime
 from flask import Response 
 from urllib.parse import quote
-
+from datetime import datetime, timedelta
+import time
 import hashlib
 import secrets
 
@@ -172,8 +173,9 @@ def get_car_follow():
     beijing_top_ten = (
         db.session.query(CarFollow.car_name)
         .filter(CarFollow.city_range == '北京')
+        .filter(CarFollow.date==datetime.now().strftime('%Y-%m-%d'))
         .order_by(CarFollow.follow.desc())
-        .limit(18)
+        .limit(16)
         .all()
     )
     beijing_top_ten_car_names = [item.car_name for item in beijing_top_ten]
@@ -186,7 +188,7 @@ def get_car_follow():
         db.session.query(CarFollow.city_range, CarFollow.car_name, CarFollow.follow)
         .filter(
             CarFollow.car_name.in_(beijing_top_ten_car_names),
-            CarFollow.city_range != '北京'
+            # CarFollow.city_range != '北京'
         )
         .all()
     )

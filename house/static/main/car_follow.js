@@ -169,9 +169,15 @@ function renderCarSalesChart(data) {
             position: 'left',
             axisLabel: {
                 color: '#fff',
-                fontSize: 16,
+                fontSize: 12, // 减小字体大小
+                rotate: 30, // 旋转标签
+                interval: 0, // 显示所有标签
                 shadowColor: 'rgba(0, 0, 0, 0.5)',
-                shadowBlur: 5
+                shadowBlur: 5,
+                // 使用换行符或缩短显示
+                formatter: function (value) {
+                    return value.split('').join('\n'); // 每个字符换行显示
+                }
             },
             axisLine: {
                 lineStyle: {
