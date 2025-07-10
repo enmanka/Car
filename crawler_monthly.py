@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-crawler_monthly.py
 
-每月爬取一次最新可用月份数据，然后在 MySQL 中新建
-jiaoche_n, suv_n, mpv_n, all_n 四张表，n 为下一个序号。
-"""
 
 import time
 from datetime import datetime
@@ -41,6 +36,7 @@ TEMPLATE = {
     'all':     'all_05'
 }
 
+
 def fetch_page(url: str):
     opts = Options()
     opts.add_argument('--headless')
@@ -58,6 +54,7 @@ def fetch_page(url: str):
         return drv.current_url, drv.page_source
     finally:
         drv.quit()
+
 
 def parse_blocks(html: str, label: str):
     soup = BeautifulSoup(html, 'lxml')
@@ -89,26 +86,14 @@ def parse_blocks(html: str, label: str):
         })
     return rows
 
-def next_suffix(conn, prefix: str) -> int:
-    """
-    查找 TABLE_NAME LIKE '{prefix}_%' 的最大后缀，返回 max+1。
-    prefix: 'jiaoche', 'suv', 'mpv', or 'all'
-    """
-    sql = text(f"""
-        SELECT MAX(CAST(SUBSTRING_INDEX(TABLE_NAME, '_', -1) AS UNSIGNED)) 
-          FROM information_schema.TABLES
-         WHERE TABLE_SCHEMA = DATABASE()
-           AND TABLE_NAME LIKE :pat
-    """)
-    pat = f"{prefix}_%"
-    mx = conn.execute(sql, {"pat": pat}).scalar() or 0
-    return mx + 1
 
 def create_table_like(conn, new_table: str, template: str):
     conn.execute(text(f"CREATE TABLE `{new_table}` LIKE `{template}`;"))
 
+
 def insert_records(conn, table: str, df: pd.DataFrame):
     df.to_sql(table, conn, if_exists='append', index=False)
+
 
 def main():
     engine = create_engine(DB_URI, echo=False)
@@ -138,32 +123,43 @@ def main():
         return
 
     ym, data = latest
+    # —— 2. 后缀直接取“月”部分两位数 ——
+    month = int(ym.split('-')[1])
+    suffix_str = f"{month:02d}"
+    check_table = f"all_{suffix_str}"
 
-    # 2. 建表 & 插入
+    with engine.connect() as conn:
+        exists = conn.execute(
+            text("SELECT COUNT(*) FROM information_schema.TABLES "
+                 "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :t"),
+            {"t": check_table}
+        ).scalar()
+        if exists and exists > 0:
+            print(f"{suffix_str} 表已存在，网站数据未更新")
+            return
+
+    # —— 3. 新建表 & 插入 ——
     with engine.begin() as conn:
-        # 先计算所有后缀
-        suffixes = {key: next_suffix(conn, key if key!='all' else 'all')
-                    for key in ['jiaoche','suv','mpv','all']}
-        print("后缀：", suffixes)
         for label, prefix in list(TYPES.items()) + [('all','all')]:
-            suf = suffixes[prefix]
-            new_table = f"{prefix}_{suf:02d}"
-            tpl = TEMPLATE[prefix]
+            new_table = f"{prefix}_{suffix_str}"
+            tpl       = TEMPLATE[prefix]
             print(f"→ CREATE {new_table} LIKE {tpl}")
             create_table_like(conn, new_table, tpl)
-            # 构造 DataFrame
+
             if prefix == 'all':
                 df_all = pd.concat(
                     [pd.DataFrame(data[l]).assign(car_type=l) for l in TYPES],
                     ignore_index=True
                 )
                 insert_records(conn, new_table, df_all)
+                print(f"   插入 {len(df_all)} 条到 {new_table}")
             else:
                 df = pd.DataFrame(data[label])
                 insert_records(conn, new_table, df)
-            print(f"   插入 {len(data.get(label, []))} 条到 {new_table}")
+                print(f"   插入 {len(df)} 条到 {new_table}")
 
     print("完成。")
+
 
 if __name__ == "__main__":
     main()
