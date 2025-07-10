@@ -304,7 +304,7 @@
     <!-- 右列 -->
     <div class="right-col">
       <div class="panel" onclick="goToMonthlySales()" style="cursor: pointer;">
-        <h3><i class="fas fa-trophy"></i> 5月销量排行榜</h3>
+        <h3><i class="fas fa-trophy"></i> 6月销量排行榜</h3>
         <div class="panel-content" style="overflow-y: auto;">
           <table id="salesTable">
             <thead>
@@ -330,7 +330,7 @@
     }
 
     // 加载排行榜数据
-    fetch('/data/getCarSalesByMonthAndType?type=all&month=05')
+    fetch('/data/getCarSalesByMonthAndType?type=all&month=06')
       .then(res => res.json())
       .then(data => {
         const tbody = document.getElementById('salesTableBody');
@@ -368,14 +368,14 @@
 
     // 折线图数据
     function drawMPVTop5LineChart() {
-      fetch('/api/mpv/monthly?startMonth=2025-01&endMonth=2025-05')
+      fetch('/api/mpv/monthly?startMonth=2025-01&endMonth=2025-06')
         .then(res => res.json())
         .then(data => {
-          const months = data.months.map(m => m.slice(5) + '月');
+          const months = data.months.map(m => m.slice(6) + '月');
           const series = data.series
             .map(s => ({ model: s.model, data: s.data, total: s.data.reduce((a, b) => a + b, 0) }))
             .sort((a, b) => b.total - a.total)
-            .slice(0, 5);
+            .slice(0, 6);
 
           const option = {
             tooltip: {
