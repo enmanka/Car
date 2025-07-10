@@ -27,7 +27,7 @@ def suv_models():
     JSON 响应：{ models: [...] }
     """
     start = request.args.get('startMonth', '2025-01')
-    end   = request.args.get('endMonth',   '2025-05')
+    end   = request.args.get('endMonth',   '2025-06')
     months = gen_months(start, end)
 
     models = set()
@@ -58,7 +58,7 @@ def suv_monthly():
          }
     """
     start = request.args.get('startMonth', '2025-01')
-    end   = request.args.get('endMonth',   '2025-05')
+    end   = request.args.get('endMonth',   '2025-06')
     model = request.args.get('model', None)
     months = gen_months(start, end)
 
