@@ -53,34 +53,16 @@
             <div id="car_sales" class="chart"></div>
             <div class="month-selector">
                 <label>开始月份：</label>
-                <select id="start-month">
-                    <option value="01" selected>1月</option>
-                    <option value="02">2月</option>
-                    <option value="03">3月</option>
-                    <option value="04">4月</option>
-                    <option value="05">5月</option>
-                </select>
+                <select id="start-month"></select>
                 <label>结束月份：</label>
-                <select id="end-month">
-                    <option value="01">1月</option>
-                    <option value="02">2月</option>
-                    <option value="03">3月</option>
-                    <option value="04">4月</option>
-                    <option value="05" selected>5月</option>
-                </select>
+                <select id="end-month"></select>
             </div>
         </div>
 
         <div class="left_1">
             <div class="month-selector">
                 <label>选择月份：</label>
-                <select id="month-select" style="margin-right:40px;">
-                    <option value="01">1月</option>
-                    <option value="02">2月</option>
-                    <option value="03">3月</option>
-                    <option value="04">4月</option>
-                    <option value="05" selected>5月</option>
-                </select>
+                <select id="month-select" style="margin-right:40px;"></select>
                 <input id="search-input" type="text" placeholder="请输入车型名称搜索" style="margin-right:8px; padding:4px; width:200px;" />
                 <button type="button" id="view-single-sales" style="padding:4px 12px; cursor:pointer;">查看单品销量</button>
             </div>
@@ -193,33 +175,80 @@
     })(jQuery);
     </script>
 
+<!-- 动态生成最近5个月（不含当月）并修复 loadData 400 问题的完整 <script> 区 -->
     <script>
-    // 查看单品销量按钮及搜索框逻辑
-    document.getElementById('view-single-sales').onclick = function() {
-        var searchVal = document.getElementById('search-input').value.trim();
-        var active = document.querySelector('.top-nav .nav-item.active');
-        if (!active) { alert('无法识别车型'); return; }
-        var type = active.getAttribute('data-type');
-        var pageMap = { sedan: '../static/jiaoche.html', suv: '../static/suv.html', mpv: '../static/mpv.html' };
-        var target = pageMap[type];
-        if (!target) { alert('未配置该车型详情页'); return; }
-        if (searchVal) {
-            window.location.href = target + '?model=' + encodeURIComponent(searchVal);
-        } else {
-            window.location.href = target;
+    // 动态填充最近 count 个月（不含当月）的下拉
+    function populateMonthSelectors(count = 5) {
+        const now = new Date();
+        const cur = now.getMonth() + 1; // 当前月 1-12
+        const months = [];
+        // 取前 count 个月
+        for (let i = 1; i <= count; i++) {
+        let m = cur - i;
+        if (m <= 0) m += 12;
+        months.push(m);
         }
-    };
-
-    // 点击车名链接跳转到详情并隐式搜索
-    function goDetail(modelName) {
-        var active = document.querySelector('.top-nav .nav-item.active');
-        if (!active) { alert('无法识别车型'); return; }
-        var type = active.getAttribute('data-type');
-        var pageMap = { sedan: '../static/jiaoche.html', suv: '../static/suv.html', mpv: '../static/mpv.html' };
-        var target = pageMap[type];
-        if (!target) { alert('未配置该车型详情页'); return; }
-        window.location.href = target + '?model=' + encodeURIComponent(modelName);
+        // 按旧到新排序
+        months.sort((a, b) => a - b);
+        const opts = months.map(m => {
+        const val = m.toString().padStart(2, '0');
+        return `<option value="${val}">${m}月</option>`;
+        }).join('');
+        ['start-month','end-month','month-select'].forEach(id => {
+        document.getElementById(id).innerHTML = opts;
+        });
+        // 默认选中范围：start-month 最早一项，end-month 最最近一项
+        const first = months[0].toString().padStart(2,'0');
+        const last  = months[months.length-1].toString().padStart(2,'0');
+        document.getElementById('start-month').value   = first;
+        document.getElementById('end-month').value     = last;
+        document.getElementById('month-select').value  = last;
     }
+
+    let currentType = 'all';
+    let currentMonth = '';
+    let COMMENT_SORT = 'hot';
+
+    function loadData() {
+        if (!currentMonth) return;
+        const url = `/data/getCarSalesByMonthAndType?type=${currentType}&month=${currentMonth}`;
+        console.log('加载销量 URL:', url);
+        fetch(url)
+        .then(res => {
+            if (!res.ok) throw new Error('数据加载失败 ' + res.status);
+            return res.json();
+        })
+        .then(data => {
+            const tbody = document.getElementById('carTableBody');
+            tbody.innerHTML = '';
+            data.forEach(car => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>No.${car.ranking}</td>
+                <td>${car.car_name || '未获取'}</td>
+                <td>${car.sales || 0}</td>
+                <td>${car.rating != null ? car.rating : '未获取'}</td>
+                <td>${car.price_range || '未获取'}</td>`;
+            row.onclick = () => renderDetail(car);
+            tbody.appendChild(row);
+            });
+            if (data.length) renderDetail(data[0]);
+        })
+        .catch(err => console.error('loadData 出错', err));
+    }
+
+    window.onload = () => {
+        populateMonthSelectors(5);
+        currentMonth = document.getElementById('month-select').value;
+        loadData();
+        document.getElementById('month-select').addEventListener('change', () => {
+        currentMonth = document.getElementById('month-select').value;
+        loadData();
+        });
+        // 可继续绑定其它交互如 renderTrend
+    };
     </script>
+
+
 </body>
 </html>
