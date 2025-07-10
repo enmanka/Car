@@ -110,7 +110,7 @@
             const [mres, res] = await Promise.all([
               axios.get('/api/suv/models'),
               axios.get('/api/suv/monthly', {
-                params: { startMonth:'2025-01', endMonth:'2025-05' }
+                params: { startMonth:'2025-01', endMonth:'2025-06' }
               })
             ]);
             allModels.value = mres.data.models;
@@ -200,7 +200,7 @@
           if (!name) return ElMessage.warning('请输入车型');
           loading.value = true;
           try {
-            const res = await axios.get('/api/suv/monthly', { params: { model: name, startMonth:'2025-01', endMonth:'2025-05' } });
+            const res = await axios.get('/api/suv/monthly', { params: { model: name, startMonth:'2025-01', endMonth:'2025-06' } });
             const { months=[], rows=[], imageUrl } = res.data;
             tableData.value = rows;
             selectedSeries.value = [{ model: name, data: rows.map(r=>r.sales) }];
