@@ -296,25 +296,33 @@ def getCarSales_All():
 
 @data.route('/getCarSalesByMonth')
 def get_car_sales_by_month():
-    # 获取请求参数中的月份
+    # 获取请求参数中的月份（如 "05"）
     month = request.args.get('month')
     
+    # 验证月份格式（必须是 01-12 的两位数）
     if not month or not month.isdigit() or int(month) not in range(1, 13):
         return jsonify({"error": "Invalid month parameter"}), 400
     
-    # 查询指定月份的数据
+    # 查询指定月份的数据（直接匹配 CarSales.month 列）
     result = (
         db.session.query(
             CarSales.car_name,
             func.sum(CarSales.sales).label("total_sales")
         )
-        .filter(func.extract('month', CarSales.sales) == int(month))
+        .filter(CarSales.month == month.zfill(2))  # 确保月份是两位数（如 "05"）
         .group_by(CarSales.car_name)
         .order_by(func.sum(CarSales.sales).desc())
         .limit(30)
         .all()
     )
     
+    # 转换 Decimal 为 int 并格式化数据
+    wordcloud_data = [
+        {"name": name, "value": int(total_sales)}
+        for name, total_sales in result
+    ]
+    
+    return jsonify(wordcloud_data)    
     # 转换Decimal为int并格式化数据
     wordcloud_data = [
         {
