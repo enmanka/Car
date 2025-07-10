@@ -61,77 +61,83 @@ def get_car_sales():
 @api.route('/car-sales-trend')
 def get_car_sales_trend():
     """
-    动态检测最后月份后缀（表名中的数字部分），然后往前取 5 个月，
-    统计各月销售总量。
+    接收 ?type=sedan|suv|mpv|all&start=MM&end=MM
+    返回 { months: [...], totals: [...] }
     """
     try:
         car_type = request.args.get('type', 'all')
-        if car_type not in TABLE_MAP:
-            return jsonify({'error': '非法 car_type'}), 400
+        start    = request.args.get('start')  # e.g. "02"
+        end      = request.args.get('end')    # e.g. "06"
 
-        # 从 app.config 获取 DB_CONFIG 并设置 cursorclass
+        # 校验
+        if car_type not in TABLE_MAP:
+            return jsonify({'error': '非法 type 参数'}), 400
+        if car_type != 'all':
+            if not (start and end and start.isdigit() and end.isdigit()):
+                return jsonify({'error': '缺失或非法 start/end 参数'}), 400
+            si, ei = int(start), int(end)
+            # 简单不跨年区间校验，可根据需要改成循环区间
+            if si < 1 or si > 12 or ei < 1 or ei > 12:
+                return jsonify({'error': 'start/end 必须在 01-12 之间'}), 400
+        else:
+            # all 类型忽略月份
+            si = ei = None
+
+        # DB 连接配置
         db_conf = current_app.config.get('DB_CONFIG')
         if not db_conf:
             return jsonify({'error': 'DB_CONFIG 未配置'}), 500
-        db_conf = db_conf.copy()
-        db_conf['cursorclass'] = pymysql.cursors.DictCursor
+        dbc = db_conf.copy()
+        dbc['cursorclass'] = pymysql.cursors.DictCursor
 
-        # 确定表名前缀
+        # 确定要查询的前缀列表
         if car_type == 'all':
             prefixes = ['jiaoche_', 'suv_', 'mpv_']
         else:
             prefixes = [TABLE_MAP[car_type]]
 
-        # 1) 查询 information_schema 找到所有后缀
-        conn = pymysql.connect(**db_conf)
+        # 构建月份列表（MM字符串）
+        months_int = []
+        if car_type == 'all':
+            # all 类型，用最近 5 个月：往前推 5 月（含 end 月为当月）
+            now = pymysql.datetime.datetime.now()
+            curm = now.month
+            for i in range(5):
+                m = curm - (4 - i)
+                if m <= 0: m += 12
+                months_int.append(m)
+        else:
+            # 普通类型：从 start 到 end 顺序
+            m = si
+            while True:
+                months_int.append(m)
+                if m == ei:
+                    break
+                m += 1
+                if m > 12:
+                    m = 1
+        # 转为两位
+        months = [f"{m:02d}" for m in months_int]
+
+        # 查询每个月总销量
+        conn = pymysql.connect(**dbc)
+        totals = []
         try:
             with conn.cursor() as cur:
-                suffixes = set()
-                for prefix in prefixes:
-                    cur.execute(
-                        "SELECT TABLE_NAME FROM information_schema.TABLES "
-                        "WHERE TABLE_SCHEMA=%s AND TABLE_NAME LIKE %s",
-                        (db_conf.get('db') or db_conf.get('database'), prefix + '%')
-                    )
-                    for row in cur.fetchall():
-                        # 提取表名后面的数字部分
-                        name = row['TABLE_NAME']
-                        num_part = name.replace(prefix, '')
-                        if num_part.isdigit():
-                            suffixes.add(int(num_part))
-                if not suffixes:
-                    return jsonify({'months': [], 'totals': []})
-
-                # 2) 取最大后缀作为最后一个月份
-                max_month = max(suffixes)
-
-                # 3) 构造向前 5 个月的列表（不低于 1）
-                months_int = [m for m in range(max_month, max_month - 5, -1) if m >= 1]
-                # 按时间从远到近，再翻转为近到远
-                months_int.sort()
-                months = [f"{m:02d}" for m in months_int]
-
-                # 4) 对每个前缀、每个月份累加销售
-                totals = []
                 for mon in months:
                     if car_type == 'all':
-                        # all 需要把三张表合并再求和
-                        sql_parts = []
-                        for prefix in prefixes:
-                            sql_parts.append(
-                                f"SELECT SUM(sales) AS total FROM `{prefix}{mon}`"
-                            )
-                        union_sql = " UNION ALL ".join(sql_parts)
-                        sql = f"SELECT SUM(total) AS month_total FROM ({union_sql}) AS sub"
+                        # 三张表合并
+                        parts = []
+                        for p in prefixes:
+                            parts.append(f"SELECT SUM(sales) AS tot FROM `{p}{mon}`")
+                        union = " UNION ALL ".join(parts)
+                        sql = f"SELECT SUM(tot) AS month_total FROM ({union}) AS sub"
                     else:
-                        sql = (
-                            f"SELECT SUM(sales) AS month_total "
-                            f"FROM `{prefixes[0]}{mon}`"
-                        )
+                        tbl = f"{prefixes[0]}{mon}"
+                        sql = f"SELECT SUM(sales) AS month_total FROM `{tbl}`"
                     cur.execute(sql)
                     row = cur.fetchone()
                     totals.append(row['month_total'] or 0)
-
         finally:
             conn.close()
 
