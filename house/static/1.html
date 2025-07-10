@@ -375,7 +375,7 @@
           const series = data.series
             .map(s => ({ model: s.model, data: s.data, total: s.data.reduce((a, b) => a + b, 0) }))
             .sort((a, b) => b.total - a.total)
-            .slice(0, 6);
+            .slice(0, 5);
 
           const option = {
             tooltip: {
