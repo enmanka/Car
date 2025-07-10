@@ -16,14 +16,5 @@ app.register_blueprint(suv_bp)
 app.register_blueprint(jiaoche_bp)
 app.register_blueprint(comment_bp)
 
-# 2113041705 赵嵘
-# 2113042911 何其明
-# 2113041206 康美玉
-# 曹鑫荣
-# 2113040548 杜委旗
-# 2113041704 张嘉祺
-# 2113041221 李浩然
-# 2113040819 李鑫
-
 if __name__ == '__main__':
     app.run()
